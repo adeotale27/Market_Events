@@ -15,24 +15,24 @@
         position: fixed; right: 0; top: 38%; z-index: 2147483646;
         display: flex; align-items: center; gap: 6px;
         background: #fff; padding: 8px 8px 8px 10px;
-        border-radius: 18px 0 0 18px;
-        box-shadow: -8px 10px 28px rgba(26,43,86,.18), 0 2px 6px rgba(26,43,86,.08);
+        border-radius: 12px 0 0 12px;
+        box-shadow: -4px 6px 16px rgba(38,166,154,.12);
         cursor: pointer; font-family: system-ui, sans-serif;
       }
-      .chip img { width: 36px; height: 36px; border-radius: 12px; }
+      .chip img { width: 28px; height: 28px; border-radius: 8px; }
       .exp {
-        width: 28px; height: 28px; border-radius: 8px; background: #1a2b56; color: #fff;
+        width: 22px; height: 22px; border-radius: 6px; background: #26a69a; color: #fff;
         display: grid; place-items: center; font-size: 13px; font-weight: 800;
       }
       .panel {
         position: fixed; right: 12px; top: 72px; bottom: 72px; width: 392px;
         z-index: 2147483646; display: none;
-        border-radius: 24px; overflow: hidden;
-        box-shadow: -16px 20px 50px rgba(26,43,86,.28);
+        border-radius: 10px; overflow: hidden;
+        box-shadow: -8px 10px 28px rgba(38,166,154,.18);
         background: #fff;
       }
       .panel.on { display: block; }
-      iframe { border: 0; width: 100%; height: 100%; background: #eef1f6; }
+      iframe { border: 0; width: 100%; height: 100%; background: #f7faf9; }
     </style>
     <div class="chip" id="chip" title="Market Pulse">
       <img src="${logo}" alt="Market Pulse" />

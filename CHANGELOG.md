@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1
+
+- Compact teal Board (OI Pulse–style): slim NIFTY / SENSEX / BNF ticker, light borders
+- Dropped What’s moving and the extra session card — Board keeps FII, VIX, holiday, next event, index risk
+- Active tab and selected index use mint green
+
 ## 1.4.0
 
 - Light purple card board: slim NIFTY / SENSEX / BNF strips on top (tap to select)

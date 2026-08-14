@@ -53,6 +53,9 @@ const popupHtml = fs.readFileSync(path.join(root, "popup.html"), "utf8");
 if (/data-tab="calendar"/i.test(popupHtml) || />Calendar</.test(popupHtml)) {
   throw new Error("Calendar tab must not exist; holiday/event/risk stay on Board");
 }
+if (popupHtml.includes('id="intel"') || /WHAT.?S MOVING/i.test(popupHtml)) {
+  throw new Error("What’s moving must stay off the Board");
+}
 if (!popupHtml.includes('data-tab="board"') || !popupHtml.includes('data-tab="more"')) {
   throw new Error("Board and More tabs required");
 }

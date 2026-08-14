@@ -5,7 +5,7 @@ import { istClock } from "./lib/time.js";
 const INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
 const LABELS = { NIFTY: "NIFTY", SENSEX: "SENSEX", BANKNIFTY: "BNF" };
 const GH = "https://github.com/adeotale27/Market_Events/issues/new";
-const VERSION = "1.4.0";
+const VERSION = "1.4.1";
 
 function fmtPx(n) {
   if (n == null || !Number.isFinite(Number(n))) return "—";
@@ -29,23 +29,6 @@ function escapeHtml(s) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
-function sparkSvg(values, up) {
-  const pts = (values || []).filter((x) => Number.isFinite(Number(x)));
-  if (pts.length < 2) return "";
-  const min = Math.min(...pts);
-  const max = Math.max(...pts);
-  const span = max - min || 1;
-  const d = pts
-    .map((v, i) => {
-      const x = (i / (pts.length - 1)) * 100;
-      const y = 16 - ((v - min) / span) * 14 - 1;
-      return `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-  const color = up ? "#16a34a" : "#e11d48";
-  return `<svg viewBox="0 0 100 16" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.6"/></svg>`;
-}
-
 function render(pack, index, showAll) {
   document.getElementById("ver").textContent = `v${VERSION}`;
   document.getElementById("ver2").textContent = `v${VERSION}`;
@@ -57,25 +40,23 @@ function render(pack, index, showAll) {
   document.getElementById("indexes").innerHTML = INDEXES.map((idx) => {
     const s = pack?.spots?.[idx] || {};
     const on = idx === index ? "on" : "";
-    const up = (s.pct || 0) >= 0;
     return `<button type="button" class="idx ${on}" data-idx="${idx}">
       <b>${LABELS[idx]}</b>
-      <div class="px ${cls(s.pct)}">${fmtPx(s.last)}</div>
+      <div class="px">${fmtPx(s.last)}</div>
       <div class="chg ${cls(s.pct)}">${fmtPct(s.pct) || (s.error || "—")}</div>
-      ${sparkSvg(s.spark, up)}
     </button>`;
   }).join("");
 
   const f = pack?.fii;
   const fiiEl = document.getElementById("fii");
   if (f) {
-    fiiEl.innerHTML = `<div><div class="k">FII / DII</div>
+    fiiEl.innerHTML = `<div class="k">FII / DII</div>
       FII <span class="${cls(f.fiiNet)}">${fmtCr(f.fiiNet)}</span>
       · DII <span class="${cls(f.diiNet)}">${fmtCr(f.diiNet)}</span>
       ${f.date ? ` · ${escapeHtml(f.date)}` : ""}
-      ${f.stale || pack?.fiiError ? `<span class="stale"> · last good</span>` : ""}</div>`;
+      ${f.stale || pack?.fiiError ? `<span class="stale"> · last good</span>` : ""}`;
   } else {
-    fiiEl.innerHTML = `<div><div class="k">FII / DII</div>${escapeHtml(pack?.fiiError || "Open nseindia.com once, then Refresh")}</div>`;
+    fiiEl.innerHTML = `<div class="k">FII / DII</div>${escapeHtml(pack?.fiiError || "Open nseindia.com once, then Refresh")}`;
   }
 
   const vix = pack?.spots?.VIX || {};
@@ -89,36 +70,27 @@ function render(pack, index, showAll) {
       </div>
       <div class="${cls(vix.pct)}">${fmtPct(vix.pct)}</div>`;
   } else {
-    vixEl.innerHTML = `<div class="k">INDIA VIX</div><div>—</div>`;
+    vixEl.innerHTML = `<div class="k">INDIA VIX</div>—`;
   }
-
-  const hours = sess === "LIVE" ? "Regular session 09:15 – 15:40 IST" : "Regular session 09:15 – 15:40 IST";
-  const title = sess === "LIVE" ? "Market open" : sess === "PRE-MARKET" ? "Pre-market" : sess === "HOLIDAY" ? "Holiday" : "Market closed";
-  document.getElementById("sessionCard").innerHTML =
-    `<div><div class="k">SESSION</div><b class="session-title">${escapeHtml(title)}</b><div class="hint">${hours}</div></div>`;
 
   const h = (pack?.holidays || [])[0];
   const hol = document.getElementById("holiday");
   hol.classList.toggle("alert", !!(h && h.daysAway <= 1));
-    hol.innerHTML = h
-    ? `<div><div class="k">NEXT HOLIDAY</div><b>${escapeHtml(h.name)}</b> · ${escapeHtml(relLabel(h.daysAway))} · ${escapeHtml(h.date)}</div>`
-    : `<div><div class="k">NEXT HOLIDAY</div>No upcoming holiday in the NSE list</div>`;
-
-  const intel = pack?.intelByIndex?.[index] || [];
-  document.getElementById("intel").innerHTML = `<div><div class="k">WHAT’S MOVING · ${escapeHtml(index)}</div>
-    ${intel.map((s) => `<div class="${s.tone || ""}">${escapeHtml(s.text)}</div>`).join("")}</div>`;
+  hol.innerHTML = h
+    ? `<div class="k">NEXT HOLIDAY</div><b>${escapeHtml(h.name)}</b> · ${escapeHtml(relLabel(h.daysAway))} · ${escapeHtml(h.date)}`
+    : `<div class="k">NEXT HOLIDAY</div>No upcoming holiday in the NSE list`;
 
   const ev = (pack?.econ || [])[0];
   const next = document.getElementById("next");
   const evHot = !!(ev && ev.daysAway <= 1 && (ev.impact === "critical" || ev.impact === "high"));
   next.classList.toggle("alert", evHot);
   if (!ev) {
-    next.innerHTML = `<div><div class="k">NEXT EVENT</div>No upcoming macro event</div>`;
+    next.innerHTML = `<div class="k">NEXT EVENT</div>No upcoming macro event`;
   } else {
     const hi = eventImpactLabel(ev.impact);
-    next.innerHTML = `<div><a href="#" id="viewAll">View all</a>
+    next.innerHTML = `<a href="#" id="viewAll">View all</a>
       <div class="k">NEXT EVENT</div>
-      <b>${escapeHtml(ev.name)}</b> · ${escapeHtml(relLabel(ev.daysAway))} ${hi ? `· ${hi}` : ""}</div>`;
+      <b>${escapeHtml(ev.name)}</b> · ${escapeHtml(relLabel(ev.daysAway))} ${hi ? `· ${hi}` : ""}`;
   }
 
   const risk = pack?.risk?.[index];
@@ -133,11 +105,11 @@ function render(pack, index, showAll) {
   if (weekRisk) {
     const kind = weekRisk.event_type === "Quarterly Results" ? "Results" : "Board";
     const wt = weekRisk.weightage != null ? ` · ${weekRisk.weightage}% wt` : "";
-    riskEl.innerHTML = `<div><div class="k">${escapeHtml(index)} RISK</div>
+    riskEl.innerHTML = `<div class="k">${escapeHtml(index)} RISK</div>
       <b>${escapeHtml(weekRisk.name)}</b> · ${kind} ${escapeHtml(relLabel(weekRisk.days_remaining))}${wt}
-      ${weekRisk.level ? ` · ${weekRisk.level}` : ""}</div>`;
+      ${weekRisk.level ? ` · ${weekRisk.level}` : ""}`;
   } else {
-    riskEl.innerHTML = `<div><div class="k">${escapeHtml(index)} RISK</div>${escapeHtml(empty)}</div>`;
+    riskEl.innerHTML = `<div class="k">${escapeHtml(index)} RISK</div>${escapeHtml(empty)}`;
   }
 
   const all = document.getElementById("allEvents");
@@ -151,7 +123,7 @@ function render(pack, index, showAll) {
   }
 
   const age = pack?.at ? istClock(pack.at) : "—";
-  document.getElementById("meta").textContent = `🕒 ${age} IST`;
+  document.getElementById("meta").textContent = `${age} IST`;
 
   document.body.classList.toggle("urgent", !!pack?.urgent?.on);
   document.getElementById("banner").textContent = pack?.urgent?.on
