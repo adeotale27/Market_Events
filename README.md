@@ -4,7 +4,7 @@ Standalone **Manifest V3** extension. **No Kite. No OI Pulse poller. No Mongo. N
 
 Canonical product repo: **https://github.com/adeotale27/Market_Events**
 
-If you only have `oi-pulse-app`, pull **the orphan branch** — see **[PULL.md](PULL.md)**. Do not copy this into OI Pulse `main`.
+Clone **this** repo. See **[PULL.md](PULL.md)**. Do not copy this tree into OI Pulse `main`.
 
 ## What you see
 
