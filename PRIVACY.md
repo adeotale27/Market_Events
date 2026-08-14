@@ -15,7 +15,9 @@ No Kite / broker token is stored or requested.
 
 ## Notifications
 
-Optional. If you tap **Enable alerts**, Chrome asks for the notifications permission. You then get at most two trading-day pings (09:00 IST pre-market, 15:40 IST close). Weekends and NSE holidays are skipped. You can turn this off in Settings.
+Optional. If you tap **Enable alerts**, Chrome asks for the notifications permission. You then get at most two trading-day pings (**09:15 IST** today’s board, **15:40 IST** close). If tomorrow is an NSE holiday or a high-impact event is due, a short chime plays and a Pulse window can open. Weekends and NSE holidays are skipped. You can turn this off in Settings.
+
+A small logo chip may appear on the right edge of ordinary https pages so you can expand Pulse while you work. It does not read page content.
 
 ## Remote code
 

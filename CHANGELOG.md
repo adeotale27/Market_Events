@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0
+
+- Professional logo; stronger 3D cards (22px radius) and India VIX meter
+- Right-edge page dock (logo chip → expand panel) plus Chrome side panel
+- User settings vs admin PIN (`pulse`) for JSON desk
+- 09:15 today’s board and 15:40 close; holiday-tomorrow / high-impact → red, chime, window
+- Board / Calendar / More tabs
+
 ## 1.2.0
 
 - Light Pulse-style theme, 14px rounded cards

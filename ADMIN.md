@@ -1,6 +1,8 @@
 # Admin data
 
-There is no FastAPI in this repo. “Upload into the server” means:
+There is no FastAPI in this repo. “Upload into the server” means GitHub `data/` or Options.
+
+Popup Settings is **user-only** (alerts, suggest, report). Admin JSON stays behind a PIN (`adminPin` in `data/config.json`, default `pulse`) or Chrome → extension **Details → Extension options**.
 
 1. **Shared:** commit JSON on **https://github.com/adeotale27/Market_Events** under `data/` (GitHub raw is the server every installed copy can fetch).
 2. **This browser only:** Chrome → extension **Options** → pick the JSON files. Those win until you Clear uploads.

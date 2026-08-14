@@ -1,4 +1,4 @@
-import { pickIndexRisk, rankIntel, impactScore, riskEmptyMessage } from "../lib/signals.js";
+import { pickIndexRisk, rankIntel, impactScore, riskEmptyMessage, computeUrgent } from "../lib/signals.js";
 import { isCashSessionIST, sessionLabel, nextTradingAlarmUtc, isTradingDay } from "../lib/time.js";
 
 const ev = {
@@ -64,3 +64,10 @@ const expired = riskEmptyMessage("SENSEX", {
   events: [],
 });
 if (!/ended/i.test(expired)) throw new Error("expired calendar copy");
+
+const urg = computeUrgent({
+  holidays: [{ name: "Ganesh Chaturthi", daysAway: 1 }],
+  econ: [{ name: "GDP", daysAway: 1, impact: "high" }],
+  risk: { NIFTY: null, SENSEX: null, BANKNIFTY: null },
+});
+if (!urg.on) throw new Error("urgent holiday tomorrow");

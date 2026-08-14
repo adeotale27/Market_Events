@@ -7,7 +7,7 @@ import {
   sessionLabel,
   nextTradingAlarmUtc,
 } from "./lib/time.js";
-import { pickIndexRisk, rankIntel, riskLevel } from "./lib/signals.js";
+import { pickIndexRisk, rankIntel, riskLevel, computeUrgent } from "./lib/signals.js";
 
 const NSE_HOME = "https://www.nseindia.com/";
 const NSE_PAGE = "https://www.nseindia.com/reports/fii-dii";
@@ -223,6 +223,7 @@ function decoratePack(pack) {
     pack.risk[idx] = best ? { ...best, level: riskLevel(best) } : null;
     pack.intelByIndex[idx] = rankIntel(pack, idx);
   }
+  pack.urgent = computeUrgent(pack);
   return pack;
 }
 
@@ -356,7 +357,7 @@ async function holidayDates() {
 
 async function scheduleBriefs() {
   const dates = await holidayDates();
-  const pre = nextTradingAlarmUtc(9, 0, dates);
+  const pre = nextTradingAlarmUtc(9, 15, dates);
   const close = nextTradingAlarmUtc(15, 40, dates);
   await chrome.alarms.clear("brief-premarket");
   await chrome.alarms.clear("brief-close");
@@ -407,6 +408,22 @@ async function openPulseWindow() {
   });
 }
 
+async function playAlert() {
+  try {
+    const has = await chrome.offscreen.hasDocument();
+    if (!has) {
+      await chrome.offscreen.createDocument({
+        url: "offscreen.html",
+        reasons: ["AUDIO_PLAYBACK"],
+        justification: "Play the Market Pulse briefing chime",
+      });
+    }
+    await chrome.runtime.sendMessage({ type: "play-alert" });
+  } catch {
+    /* popup window can still chime */
+  }
+}
+
 async function onBrief(kind) {
   const dates = await holidayDates();
   if (!isTradingDaySafe(dates)) {
@@ -414,12 +431,20 @@ async function onBrief(kind) {
     return;
   }
   const pack = await refreshAll().catch(() => null);
-  const idx = "NIFTY";
-  const line = pack?.intelByIndex?.[idx]?.[0]?.text || pack?.econ?.[0]?.name || "Briefing ready";
+  const urgent = pack?.urgent?.on;
+  const reason = pack?.urgent?.reasons?.[0] || pack?.intelByIndex?.NIFTY?.[0]?.text || "Today’s board is ready";
+  await storageSet({
+    briefing: { kind, urgent: !!urgent, reasons: pack?.urgent?.reasons || [], at: Date.now() },
+  });
+  const s = await storageGet(["alertsEnabled"]);
   if (kind === "premarket") {
-    await notify("brief-premarket", "Market Pulse · Pre-market briefing ready", line);
+    await notify("brief-premarket", "Market Pulse · 09:15 · Today’s board", reason);
   } else {
-    await notify("brief-close", "Market Pulse · Market closed · Key moves detected", line);
+    await notify("brief-close", "Market Pulse · 15:40 · Close briefing", reason);
+  }
+  if (s.alertsEnabled && urgent) {
+    await playAlert();
+    await openPulseWindow();
   }
   await scheduleBriefs();
 }
@@ -516,7 +541,22 @@ chrome.runtime.onMessage.addListener((msg, _s, send) => {
     storageSet({ consentSeen: true, alertsEnabled: false }).then(() => send({ ok: true }));
     return true;
   }
-  if (msg?.type === "open-mini") {
+  if (msg?.type === "play-alert") return false;
+  if (msg?.type === "unlock-admin") {
+    loadBundled("data/config.json")
+      .then(async (cfg) => {
+        const pin = String(cfg.adminPin || "pulse");
+        const ok = String(msg.pin || "") === pin;
+        if (ok) await storageSet({ adminUnlocked: true });
+        send({ ok });
+      })
+      .catch((e) => send({ ok: false, error: String(e) }));
+    return true;
+  }
+  if (msg?.type === "lock-admin") {
+    storageSet({ adminUnlocked: false }).then(() => send({ ok: true }));
+    return true;
+  }
     chrome.windows
       .create({
         url: chrome.runtime.getURL("mini.html"),

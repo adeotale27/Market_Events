@@ -8,10 +8,11 @@
 <body>
   <div id="consent" class="consent hidden">
     <h1>Stay ahead of the market</h1>
-    <p>One ping on trading days. Never opens itself.</p>
+    <p>Trading days only. You can turn this off later.</p>
     <ul>
-      <li><b>09:00</b> Pre-market</li>
-      <li><b>15:40</b> Market close</li>
+      <li><b>09:15</b> Today’s board</li>
+      <li><b>15:40</b> Close board</li>
+      <li>Holiday tomorrow or a high-impact event → <b>red + chime + window</b></li>
     </ul>
     <div class="consent-actions">
       <button id="enableAlerts" type="button" class="primary">Enable alerts</button>
@@ -21,38 +22,55 @@
 
   <header>
     <div class="brand">
-      <strong>Market Pulse</strong>
-      <span class="ver" id="ver">v1.2.0</span>
-      <span id="sess" class="pill">—</span>
+      <img class="logo" src="icons/icon48.png" alt="" />
+      <div>
+        <strong>Market Pulse</strong>
+        <span class="ver" id="ver">v1.3.0</span>
+        <span id="sess" class="pill">—</span>
+      </div>
     </div>
     <div class="tools">
       <button id="refresh" type="button" title="Refresh">↻</button>
-      <button id="dockBtn" type="button" title="Keep on the right (side panel)">◨</button>
-      <button id="miniBtn" type="button" title="Mini ticker window">▣</button>
+      <button id="dockBtn" type="button" title="Keep on the right">◨</button>
+      <button id="miniBtn" type="button" title="Mini ticker">▣</button>
       <button id="settingsBtn" type="button" title="Settings">⚙</button>
     </div>
   </header>
 
+  <div id="banner" class="banner"></div>
   <div class="strip" id="fii"></div>
   <div class="vix" id="vix"></div>
   <div class="indexes" id="indexes"></div>
   <div class="strip" id="holiday"></div>
-
   <section class="intel" id="intel"></section>
   <section class="rowline" id="next"></section>
   <section class="rowline" id="risk"></section>
   <div id="allEvents" class="all hidden"></div>
-
   <footer id="meta"></footer>
+
+  <nav class="tabs">
+    <button type="button" class="on" data-tab="board">Board</button>
+    <button type="button" data-tab="cal">Calendar</button>
+    <button type="button" data-tab="more">More</button>
+  </nav>
 
   <div id="settings" class="sheet hidden">
     <h2>Settings</h2>
-    <label class="toggle"><input id="alertToggle" type="checkbox" /> 09:00 / 15:40 alerts</label>
-    <a href="options.html" target="_blank" rel="noreferrer">Admin JSON</a>
+    <label class="toggle"><input id="alertToggle" type="checkbox" /> 09:15 / 15:40 alerts + chime</label>
     <a id="suggest" target="_blank" rel="noreferrer">Suggest a feature</a>
     <a id="badData" target="_blank" rel="noreferrer">Report incorrect data</a>
     <a id="problem" target="_blank" rel="noreferrer">Report a problem</a>
-    <p class="ver">Market Pulse <span id="ver2">v1.2.0</span></p>
+    <div id="adminBox">
+      <div class="pin">
+        <input id="adminPin" type="password" placeholder="Admin PIN" />
+        <button id="adminGo" type="button" class="primary">Unlock</button>
+      </div>
+    </div>
+    <div id="adminZone" class="hidden">
+      <a href="options.html" target="_blank" rel="noreferrer">Admin JSON &amp; remote</a>
+      <button id="adminLock" type="button" class="ghost">Lock admin</button>
+    </div>
+    <p class="ver">Market Pulse <span id="ver2">v1.3.0</span></p>
     <button id="closeSheet" type="button" class="ghost">Close</button>
   </div>
 

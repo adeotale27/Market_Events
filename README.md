@@ -21,8 +21,9 @@ If you already loaded an older build: **Reload** the extension card after `git p
 
 Toolbar next to Refresh:
 
-- **◨ Dock** — pins Market Pulse on the **right side** of the Chrome window (side panel). You can keep working.
-- **▣ Mini** — a small floating window that **rotates** NIFTY / SENSEX / BNF. Drag it anywhere.
+- **◨ Dock** — Chrome’s right **side panel**
+- Right-edge **logo chip** on web pages — tap to expand Pulse (same look as a floating desk widget)
+- **▣ Mini** — small rotating NIFTY / SENSEX / BNF window
 
 First open: **Stay ahead of the market** — Enable alerts or Not now. Alerts never auto-open the popup.
 
@@ -60,4 +61,4 @@ Priority: **FII/DII → VIX → indexes → holiday → what’s moving → next
 
 [PUBLISH.md](PUBLISH.md) · [PRIVACY.md](PRIVACY.md)
 
-Version **1.2.0** lockstep `VERSION` ↔ `manifest.json`.
+Version **1.3.0** lockstep `VERSION` ↔ `manifest.json`.

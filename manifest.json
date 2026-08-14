@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Market Pulse",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Compact Indian index pulse: live NIFTY/SENSEX/BANKNIFTY, VIX, FII/DII, next event, constituent risk. No account, no Kite.",
   "icons": {
     "16": "icons/icon16.png",
@@ -19,9 +19,31 @@
   },
   "options_ui": { "page": "options.html", "open_in_tab": true },
   "background": { "service_worker": "background.js", "type": "module" },
-  "permissions": ["storage", "alarms", "sidePanel"],
+  "permissions": ["storage", "alarms", "sidePanel", "offscreen"],
   "optional_permissions": ["notifications"],
   "side_panel": { "default_path": "popup.html" },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["dock.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "popup.html",
+        "popup.css",
+        "popup.js",
+        "lib/*",
+        "icons/*",
+        "sounds/*",
+        "options.html",
+        "options.js"
+      ],
+      "matches": ["https://*/*", "http://*/*"]
+    }
+  ],
   "host_permissions": [
     "https://www.nseindia.com/*",
     "https://query1.finance.yahoo.com/*",

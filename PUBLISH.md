@@ -45,7 +45,9 @@ After a code change click **Reload** on the extension card.
 5. Permissions justification:
    - `storage` — alert preference + last quotes on device
    - `alarms` — 1-minute live refresh; 09:00 / 15:40 briefs
+   - `offscreen` — briefing chime (no page audio otherwise)
    - `sidePanel` — optional dock on the right of the Chrome window
+   - Content script on http(s) pages — floating logo chip only; no page scraping
    - `notifications` (optional) — only after Enable alerts
    - Hosts: Yahoo quotes, NSE FII, GitHub raw JSON
 6. Single purpose: live Indian index pulse + event/risk calendar for traders.
