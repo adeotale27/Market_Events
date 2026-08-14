@@ -1,46 +1,48 @@
-# Market Events
+# Market Events (Chrome)
 
-Unpacked **Chrome Manifest V3** extension for NSE **holidays**, cash **FII/DII**, **India VIX**, and index **results**. Independent of OI Pulse and **Zerodha Kite**.
+Standalone **Manifest V3** extension. **No Kite. No OI Pulse poller. No Mongo. No FastAPI.**
+
+Canonical product repo: **https://github.com/adeotale27/Market_Events**
+
+If you only have `oi-pulse-app`, pull **the orphan branch** — see **[PULL.md](PULL.md)**. Do not copy this into OI Pulse `main`.
+
+## What you see
+
+Same four header tiles as OI Pulse, plus live index prints:
+
+| Tile | Source | Who updates |
+|------|--------|-------------|
+| **Holiday** | `data/holidays.json` | Admin JSON (Options upload **or** commit on GitHub) |
+| **FII / DII** | NSE `fiidiiTradeReact` from this Chrome profile | Automatic (~3h + Refresh). **Never uploaded.** |
+| **Next Event** | `data/econ-events.json` (RBI, FOMC, CPI, GDP, Budget — Pulse `econCalendar.js`) | Commit / Options upload |
+| **Index Impact** | `data/index-impact/NIFTY.json` · `SENSEX.json` · `BANKNIFTY.json` | Admin per-index JSON |
+
+**Index chips** (NIFTY / SENSEX / BANKNIFTY) switch Index Impact to that index only — same idea as Pulse `GET /events/{activeIndex}` when the desk index changes.
+
+**Spots:** Yahoo `^NSEI` / `^BSESN` / `^NSEBANK` last + %. During 09:15–15:30 IST the worker refreshes about every minute.
+
+Color rules (Pulse-like): Holiday / Next Event go red for today–tomorrow; Index Impact red if a result/board meeting is within 7 days, blue for 8–14 days.
+
+## Data precedence
+
+1. Files the admin picked on **chrome://extensions → Details → Extension options** (this browser)
+2. GitHub raw (`data/config.json` `remoteBase`, default `Market_Events` `main`) — this is the shared “server”
+3. JSON bundled in the zip / Load unpacked folder
+
+## Version
+
+`VERSION` and `manifest.json` `"version"` must be the same semver (now **1.0.0**). See [PUBLISH.md](PUBLISH.md).
 
 ## Load unpacked
 
-1. Clone this repository.
-2. Chrome → `chrome://extensions` → enable **Developer mode**.
-3. **Load unpacked** → select this folder (the one that contains `manifest.json`).
-4. Pin the icon. Open the popup and click **Refresh**.
+1. Chrome → `chrome://extensions`
+2. Developer mode
+3. **Load unpacked** → this folder (the folder that contains `manifest.json`)
 
-## What it shows
+## Admin
 
-| Tile | Source |
-|------|--------|
-| **Holiday** | Bundled [`data/holidays.json`](data/holidays.json) (NSE 2026 calendar) |
-| **FII / DII** | NSE `fiidiiTradeReact` from **this Chrome profile** (cookie warmup in the service worker) |
-| **India VIX** | Yahoo chart API (`^INDIAVIX`) |
-| **Index results** | Bundled [`data/results.json`](data/results.json) — edit and reload the extension |
+[ADMIN.md](ADMIN.md) — holiday JSON, per-index impact JSON, Options page, GitHub as the file server.
 
-No Kite token, no OI poller, no extra backend.
+## Publish to the Web Store
 
-## Refresh results
-
-Replace `data/results.json` with your calendar. Each event:
-
-```json
-{
-  "date": "2026-08-17",
-  "index": "NIFTY",
-  "symbol": "HDFCBANK",
-  "name": "HDFC Bank",
-  "purpose": "Financial Results",
-  "weightage": 13.1
-}
-```
-
-`date` is ISO (`YYYY-MM-DD`). Then on `chrome://extensions` click **Reload** for this extension.
-
-The sample rows in the repo are placeholders so the popup has something to render; swap them for your real board-meeting list.
-
-## Validate JSON
-
-```bash
-node scripts/validate.js
-```
+[PUBLISH.md](PUBLISH.md)
