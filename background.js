@@ -116,6 +116,9 @@ async function pullYahoo(symbol) {
       const prev = meta.chartPreviousClose ?? meta.previousClose;
       const chg = last != null && prev ? last - prev : null;
       const pct = chg != null && prev ? (chg / prev) * 100 : null;
+      const closes = (j?.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [])
+        .filter((x) => x != null)
+        .slice(-24);
       return {
         last,
         prev,
@@ -123,6 +126,7 @@ async function pullYahoo(symbol) {
         pct,
         high: meta.regularMarketDayHigh ?? null,
         low: meta.regularMarketDayLow ?? null,
+        spark: closes,
         symbol,
         at: Date.now(),
       };
@@ -557,6 +561,11 @@ chrome.runtime.onMessage.addListener((msg, _s, send) => {
     storageSet({ adminUnlocked: false }).then(() => send({ ok: true }));
     return true;
   }
+  if (msg?.type === "admin-status") {
+    storageGet(["adminUnlocked"]).then((s) => send({ unlocked: !!s.adminUnlocked }));
+    return true;
+  }
+  if (msg?.type === "open-mini") {
     chrome.windows
       .create({
         url: chrome.runtime.getURL("mini.html"),

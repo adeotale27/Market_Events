@@ -1,5 +1,5 @@
 {
   "remoteBase": "https://raw.githubusercontent.com/adeotale27/Market_Events/main",
-  "adminPin": "pulse",
+  "adminPin": "PulseAdmin@2026",
   "comment": "Admin JSON on GitHub is the server. Popup Settings stays user-only until admin PIN unlocks JSON uploads."
 }

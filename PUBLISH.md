@@ -33,6 +33,8 @@ git push origin main --tags
 
 After a code change click **Reload** on the extension card.
 
+Public go-live checklist (Store + GitHub): [LIVE.md](LIVE.md).
+
 ## Chrome Web Store
 
 1. Zip **without** `.git`:

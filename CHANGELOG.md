@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.0
+
+- Light purple card board: slim NIFTY / SENSEX / BNF strips on top (tap to select)
+- Holiday, next macro event, and selected-index risk live on the same Board — no Calendar tab
+- New chart-arrow toolbar icons; India VIX meter + sparklines
+- Admin desk is password-gated (`data/config.json` `adminPin`); Options page documents exact JSON shapes
+- Mini ticker handler restored; uploads rejected unless the desk is unlocked
+- How to ship live: `LIVE.md` + Chrome Web Store steps in `PUBLISH.md`
+
 ## 1.3.0
 
 - Professional logo; stronger 3D cards (22px radius) and India VIX meter

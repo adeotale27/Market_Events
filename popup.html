@@ -12,7 +12,7 @@
     <ul>
       <li><b>09:15</b> Today’s board</li>
       <li><b>15:40</b> Close board</li>
-      <li>Holiday tomorrow or a high-impact event → <b>red + chime + window</b></li>
+      <li>Holiday tomorrow or high-impact event → <b>red + chime + window</b></li>
     </ul>
     <div class="consent-actions">
       <button id="enableAlerts" type="button" class="primary">Enable alerts</button>
@@ -25,32 +25,33 @@
       <img class="logo" src="icons/icon48.png" alt="" />
       <div>
         <strong>Market Pulse</strong>
-        <span class="ver" id="ver">v1.3.0</span>
-        <span id="sess" class="pill">—</span>
+        <span class="ver" id="ver">v1.4.0</span>
       </div>
     </div>
     <div class="tools">
+      <span id="sess" class="pill">—</span>
       <button id="refresh" type="button" title="Refresh">↻</button>
       <button id="dockBtn" type="button" title="Keep on the right">◨</button>
       <button id="miniBtn" type="button" title="Mini ticker">▣</button>
-      <button id="settingsBtn" type="button" title="Settings">⚙</button>
     </div>
   </header>
 
-  <div id="banner" class="banner"></div>
-  <div class="strip" id="fii"></div>
-  <div class="vix" id="vix"></div>
-  <div class="indexes" id="indexes"></div>
-  <div class="strip" id="holiday"></div>
-  <section class="intel" id="intel"></section>
-  <section class="rowline" id="next"></section>
-  <section class="rowline" id="risk"></section>
-  <div id="allEvents" class="all hidden"></div>
-  <footer id="meta"></footer>
+  <div class="board">
+    <div id="banner" class="banner"></div>
+    <div class="indexes" id="indexes"></div>
+    <div class="strip ico-bank" id="fii"></div>
+    <div class="vix" id="vix"></div>
+    <div class="strip ico-clock" id="sessionCard"></div>
+    <div class="strip ico-cal" id="holiday"></div>
+    <section class="rowline ico-event" id="next"></section>
+    <section class="rowline ico-risk" id="risk"></section>
+    <section class="intel ico-move" id="intel"></section>
+    <div id="allEvents" class="all hidden"></div>
+    <footer id="meta"></footer>
+  </div>
 
   <nav class="tabs">
     <button type="button" class="on" data-tab="board">Board</button>
-    <button type="button" data-tab="cal">Calendar</button>
     <button type="button" data-tab="more">More</button>
   </nav>
 
@@ -60,18 +61,10 @@
     <a id="suggest" target="_blank" rel="noreferrer">Suggest a feature</a>
     <a id="badData" target="_blank" rel="noreferrer">Report incorrect data</a>
     <a id="problem" target="_blank" rel="noreferrer">Report a problem</a>
-    <div id="adminBox">
-      <div class="pin">
-        <input id="adminPin" type="password" placeholder="Admin PIN" />
-        <button id="adminGo" type="button" class="primary">Unlock</button>
-      </div>
-    </div>
-    <div id="adminZone" class="hidden">
-      <a href="options.html" target="_blank" rel="noreferrer">Admin JSON &amp; remote</a>
-      <button id="adminLock" type="button" class="ghost">Lock admin</button>
-    </div>
-    <p class="ver">Market Pulse <span id="ver2">v1.3.0</span></p>
-    <button id="closeSheet" type="button" class="ghost">Close</button>
+    <p class="ver">Market Pulse <span id="ver2">v1.4.0</span></p>
+    <p class="hint">JSON calendars are behind Admin desk (password). Traders never see that page.</p>
+    <button id="adminOpen" type="button" class="primary">Admin desk</button>
+    <button id="closeSheet" type="button" class="ghost">Back to board</button>
   </div>
 
   <script type="module" src="popup.js"></script>

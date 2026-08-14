@@ -45,7 +45,7 @@ Kite stays in OI Pulse. Do not paste tokens here.
 
 ## What you see
 
-Priority: **FII/DII → VIX → indexes → holiday → what’s moving → next event → index risk**
+Priority: **slim NIFTY / SENSEX / BNF (top) → FII/DII → VIX → session → holiday → next event → index risk → what’s moving**. One Board. No Calendar tab.
 
 - **What’s moving:** for the **selected** index only. Ranked from VIX jump, index % move / day high-low, then the heaviest constituent’s live % × weight. Not OI.
 - **Next holiday:** next NSE holiday from `data/holidays.json`.
@@ -61,4 +61,4 @@ Priority: **FII/DII → VIX → indexes → holiday → what’s moving → next
 
 [PUBLISH.md](PUBLISH.md) · [PRIVACY.md](PRIVACY.md)
 
-Version **1.3.0** lockstep `VERSION` ↔ `manifest.json`.
+Version **1.4.0** lockstep `VERSION` ↔ `manifest.json`. Admin password and JSON shapes: [ADMIN.md](ADMIN.md). Go live: [LIVE.md](LIVE.md).

@@ -23,7 +23,7 @@ function mustExist(rel) {
   if (!fs.existsSync(path.join(root, rel))) throw new Error(`missing ${rel}`);
 }
 
-for (const doc of ["README.md", "ADMIN.md", "PUBLISH.md", "PULL.md", "CHANGELOG.md", "PRIVACY.md"]) {
+for (const doc of ["README.md", "ADMIN.md", "PUBLISH.md", "PULL.md", "CHANGELOG.md", "PRIVACY.md", "LIVE.md"]) {
   mustExist(doc);
 }
 
@@ -46,6 +46,20 @@ if (blob.includes("kite.zerodha") || (manifest.host_permissions || []).join().to
 const cfg = readJson("data/config.json");
 if (!String(cfg.remoteBase || "").includes("adeotale27/Market_Events")) {
   throw new Error("remoteBase");
+}
+if (!String(cfg.adminPin || "").trim()) throw new Error("adminPin required");
+
+const popupHtml = fs.readFileSync(path.join(root, "popup.html"), "utf8");
+if (/data-tab="calendar"/i.test(popupHtml) || />Calendar</.test(popupHtml)) {
+  throw new Error("Calendar tab must not exist; holiday/event/risk stay on Board");
+}
+if (!popupHtml.includes('data-tab="board"') || !popupHtml.includes('data-tab="more"')) {
+  throw new Error("Board and More tabs required");
+}
+
+for (const file of ["background.js", "popup.js", "options.js"]) {
+  const check = spawnSync("node", ["--check", path.join(root, file)], { encoding: "utf8" });
+  if (check.status !== 0) throw new Error(`${file} syntax: ${check.stderr || check.stdout}`);
 }
 
 const holidays = readJson("data/holidays.json");
