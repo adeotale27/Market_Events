@@ -1,0 +1,8 @@
+{
+  "enabled": false,
+  "label": "Partner",
+  "title": "",
+  "url": "",
+  "blurb": "",
+  "comment": "Set enabled true and fill https url + title to show one Partner tile. Not AdSense. Users can hide it in More."
+}

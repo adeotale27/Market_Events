@@ -5,7 +5,7 @@ import { istClock } from "./lib/time.js";
 const INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
 const LABELS = { NIFTY: "NIFTY", SENSEX: "SENSEX", BANKNIFTY: "BNF" };
 const GH = "https://github.com/adeotale27/Market_Events/issues/new";
-const VERSION = "1.4.1";
+const VERSION = "1.5.0";
 
 function fmtPx(n) {
   if (n == null || !Number.isFinite(Number(n))) return "—";
@@ -112,6 +112,21 @@ function render(pack, index, showAll) {
     riskEl.innerHTML = `<div class="k">${escapeHtml(index)} RISK</div>${escapeHtml(empty)}`;
   }
 
+  const partnerEl = document.getElementById("partner");
+  const ptn = pack?.partner;
+  if (ptn && ptn.url && ptn.title && !window.__mpHidePartner) {
+    partnerEl.hidden = false;
+    partnerEl.classList.add("on");
+    partnerEl.href = ptn.url;
+    partnerEl.innerHTML = `<div class="k">${escapeHtml(ptn.label || "PARTNER")}</div>
+      <b>${escapeHtml(ptn.title)}</b>${ptn.blurb ? ` · ${escapeHtml(ptn.blurb)}` : ""}`;
+  } else {
+    partnerEl.hidden = true;
+    partnerEl.classList.remove("on");
+    partnerEl.removeAttribute("href");
+    partnerEl.innerHTML = "";
+  }
+
   const all = document.getElementById("allEvents");
   if (showAll) {
     all.classList.remove("hidden");
@@ -133,10 +148,12 @@ function render(pack, index, showAll) {
 
 function load() {
   chrome.storage.local.get(
-    ["radar", "activeIndex", "consentSeen", "alertsEnabled", "showAllEvents", "uiTab", "briefing"],
+    ["radar", "activeIndex", "consentSeen", "alertsEnabled", "showAllEvents", "uiTab", "briefing", "hidePartner"],
     (s) => {
       const index = INDEXES.includes(s.activeIndex) ? s.activeIndex : "NIFTY";
+      window.__mpHidePartner = !!s.hidePartner;
       render(s.radar || {}, index, !!s.showAllEvents);
+      document.getElementById("hidePartner").checked = !!s.hidePartner;
       document.getElementById("consent").classList.toggle("hidden", !!s.consentSeen);
       document.getElementById("alertToggle").checked = !!s.alertsEnabled;
       const tab = s.uiTab === "more" ? "more" : "board";
@@ -194,6 +211,9 @@ document.getElementById("notNow").onclick = () => {
 };
 document.getElementById("alertToggle").onchange = (e) => {
   chrome.runtime.sendMessage({ type: e.target.checked ? "enable-alerts" : "disable-alerts" }, () => load());
+};
+document.getElementById("hidePartner").onchange = (e) => {
+  chrome.storage.local.set({ hidePartner: !!e.target.checked }, () => load());
 };
 document.getElementById("suggest").href = `${GH}?title=${encodeURIComponent("Feature suggestion")}`;
 document.getElementById("badData").href = `${GH}?title=${encodeURIComponent("Incorrect data")}`;

@@ -61,4 +61,4 @@ Priority: **slim NIFTY / SENSEX / BNF ticker → FII/DII → VIX → holiday →
 
 [PUBLISH.md](PUBLISH.md) · [PRIVACY.md](PRIVACY.md)
 
-Version **1.4.1** lockstep `VERSION` ↔ `manifest.json`. Admin password and JSON shapes: [ADMIN.md](ADMIN.md). Go live: [LIVE.md](LIVE.md).
+Version **1.5.0** lockstep `VERSION` ↔ `manifest.json`. Admin password and JSON shapes: [ADMIN.md](ADMIN.md). Go live: [LIVE.md](LIVE.md). Ads / money: [MONETIZE.md](MONETIZE.md).

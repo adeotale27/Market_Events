@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.0
+
+- Same chart-arrow logo, now mint green with 3D toolbar icons
+- Raised teal cards (soft shadows, inset highlights, lifted selected index)
+- AdSense is **not** in the plugin (Google forbids it in extensions). Optional Partner tile via `data/partner.json`; hide in More. See `MONETIZE.md`
+
 ## 1.4.1
 
 - Compact teal Board (OI Pulse–style): slim NIFTY / SENSEX / BNF ticker, light borders

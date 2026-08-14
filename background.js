@@ -212,6 +212,21 @@ function holidayDateSet(holidays) {
   return new Set((holidays || []).map((h) => h.date));
 }
 
+function sanitizePartner(doc) {
+  if (!doc || doc.enabled !== true) return null;
+  const url = String(doc.url || "").trim();
+  if (!/^https:\/\//i.test(url)) return null;
+  if (/javascript:|data:/i.test(url)) return null;
+  const title = String(doc.title || "").trim().slice(0, 80);
+  if (!title) return null;
+  return {
+    label: String(doc.label || "Partner").trim().slice(0, 24) || "Partner",
+    title,
+    blurb: String(doc.blurb || "").trim().slice(0, 140),
+    url,
+  };
+}
+
 function decoratePack(pack) {
   const holidayToday = (pack.holidays || []).some((h) => h.daysAway === 0);
   pack.session = {
@@ -235,6 +250,7 @@ async function refreshAll() {
   const today = todayIST();
   const holPack = await resolveJson("holidays", "data/holidays.json", "data/holidays.json");
   const econPack = await resolveJson("econ", "data/econ-events.json", "data/econ-events.json");
+  const partnerPack = await resolveJson("partner", "data/partner.json", "data/partner.json");
   const impact = {};
   const impactSource = {};
   const impactMeta = {};
@@ -286,6 +302,7 @@ async function refreshAll() {
       quotes: "yahoo",
     },
     impactMeta,
+    partner: sanitizePartner(partnerPack.doc),
     at: Date.now(),
   };
   const prev = (await storageGet(["radar"])).radar || {};

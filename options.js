@@ -92,6 +92,14 @@ async function putAdmin(kind, doc) {
   await chrome.storage.local.set({ adminFiles });
 }
 
+function validatePartner(d) {
+  if (d.enabled === true) {
+    if (!d.title) return "title required when enabled";
+    if (!/^https:\/\//i.test(String(d.url || ""))) return "url must be https:// when enabled";
+  }
+  return "";
+}
+
 function bindFile(inputId, kind, statusId, validate) {
   document.getElementById(inputId).addEventListener("change", async (ev) => {
     const file = ev.target.files?.[0];
@@ -133,6 +141,7 @@ document.getElementById("logout").addEventListener("click", async () => {
 
 bindFile("file-holidays", "holidays", "st-holidays", validateHolidays);
 bindFile("file-econ", "econ", "st-econ", validateEcon);
+bindFile("file-partner", "partner", "st-partner", validatePartner);
 for (const idx of ["NIFTY", "SENSEX", "BANKNIFTY"]) {
   bindFile(`file-${idx}`, `impact-${idx}`, `st-${idx}`, (d) => validateIndex(d, idx));
 }

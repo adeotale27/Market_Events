@@ -90,6 +90,20 @@ Selecting NIFTY / SENSEX / BNF on the Board switches which file is shown. Empty 
 
 Do **not** upload. Service worker warms NSE cookies then `GET /api/fiidiiTradeReact`. Quotes are Yahoo in this browser. If FII fails, the popup keeps the last good nets.
 
+## 4. Partner tile — `data/partner.json`
+
+Not AdSense. Optional labeled link on the Board. Default is off (`enabled: false`). Full money notes: [MONETIZE.md](MONETIZE.md).
+
+```json
+{
+  "enabled": true,
+  "label": "Partner",
+  "title": "Your product name",
+  "url": "https://example.com/offer",
+  "blurb": "One line"
+}
+```
+
 ## Remote base
 
 Options → GitHub remote, or `data/config.json`:

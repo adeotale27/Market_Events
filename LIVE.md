@@ -2,6 +2,8 @@
 
 There is no server to deploy. Production = a Chrome extension people can install.
 
+Money: AdSense cannot live in the extension. Use a website + optional Partner tile. See [MONETIZE.md](MONETIZE.md).
+
 ## 1. Ship the GitHub source (shared calendars)
 
 Everyone already pulling from `main` gets JSON from:

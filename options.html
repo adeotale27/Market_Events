@@ -86,7 +86,22 @@
     </section>
 
     <section class="card">
-      <h2>4. Shared GitHub server</h2>
+      <h2>4. Partner tile (optional, not AdSense)</h2>
+      <p>File: <code>partner.json</code>. Google <b>AdSense is not allowed</b> inside Chrome extensions. This is one labeled tile you sell yourself. Leave <code>enabled: false</code> to hide it.</p>
+      <pre>{
+  "enabled": true,
+  "label": "Partner",
+  "title": "Your product name",
+  "url": "https://example.com/offer",
+  "blurb": "One line, 140 chars"
+}</pre>
+      <p class="hint"><code>url</code> must be <code>https://</code>. Traders can hide the tile in More.</p>
+      <label>Choose file <input id="file-partner" type="file" accept="application/json,.json" /></label>
+      <div id="st-partner"></div>
+    </section>
+
+    <section class="card">
+      <h2>5. Shared GitHub server</h2>
       <p class="hint">Installed copies fetch JSON from this raw base (default Market_Events <code>main</code>). Leave as-is unless you fork.</p>
       <label>raw.githubusercontent.com base
         <input id="remoteBase" type="url" />

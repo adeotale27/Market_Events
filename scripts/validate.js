@@ -23,7 +23,7 @@ function mustExist(rel) {
   if (!fs.existsSync(path.join(root, rel))) throw new Error(`missing ${rel}`);
 }
 
-for (const doc of ["README.md", "ADMIN.md", "PUBLISH.md", "PULL.md", "CHANGELOG.md", "PRIVACY.md", "LIVE.md"]) {
+for (const doc of ["README.md", "ADMIN.md", "PUBLISH.md", "PULL.md", "CHANGELOG.md", "PRIVACY.md", "LIVE.md", "MONETIZE.md"]) {
   mustExist(doc);
 }
 
@@ -63,6 +63,16 @@ if (!popupHtml.includes('data-tab="board"') || !popupHtml.includes('data-tab="mo
 for (const file of ["background.js", "popup.js", "options.js"]) {
   const check = spawnSync("node", ["--check", path.join(root, file)], { encoding: "utf8" });
   if (check.status !== 0) throw new Error(`${file} syntax: ${check.stderr || check.stdout}`);
+}
+
+const partner = readJson("data/partner.json");
+if (partner.enabled === true) throw new Error("default partner.json must stay disabled");
+
+for (const file of ["background.js", "popup.js", "options.js", "dock.js"]) {
+  const src = fs.readFileSync(path.join(root, file), "utf8");
+  if (/adsbygoogle|googlesyndication|doubleclick\.net/i.test(src)) {
+    throw new Error(`${file} must not embed ad network scripts`);
+  }
 }
 
 const holidays = readJson("data/holidays.json");
