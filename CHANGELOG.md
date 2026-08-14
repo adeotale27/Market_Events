@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.0
+
+- Compact dark Market Pulse popup (~372px): indexes, 1–2 intel lines, one next event, one index-risk row
+- Live NIFTY / SENSEX / BANKNIFTY / VIX / heavyweights via Yahoo in cash hours (09:15–15:40 IST)
+- Optional 09:00 pre-market and 15:40 close notifications (consent first; skip weekends/holidays)
+- Settings: suggest / report data / report a problem
+- Removed placeholder constituent events; empty index-risk until admin JSON is committed
+- No Kite
+
 ## 1.0.1
 
 - Toolbar icon + NIFTY % badge

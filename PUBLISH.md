@@ -40,9 +40,15 @@ After a code change click **Reload** on the extension card.
    git archive -o market-events.zip HEAD
    ```
 2. [Chrome Web Store developer dashboard](https://chrome.google.com/webstore/devconsole) (one-time Google developer fee).
-3. New item → upload zip → name **Market Events** → screenshots of spots + four tiles + index chips.
-4. Privacy: no account, no Kite. Hosts: NSE + Yahoo + (optional) GitHub raw.
-5. Submit. Later versions: bump semver → new zip → Upload new package.
+3. New item → upload zip → name **Market Pulse**.
+4. Privacy policy: host [PRIVACY.md](PRIVACY.md) (GitHub raw or your site) and paste the URL. No account, no Kite.
+5. Permissions justification:
+   - `storage` — alert preference + last quotes on device
+   - `alarms` — 1-minute live refresh; 09:00 / 15:40 briefs
+   - `notifications` (optional) — only after Enable alerts
+   - Hosts: Yahoo quotes, NSE FII, GitHub raw JSON
+6. Single purpose: live Indian index pulse + event/risk calendar for traders.
+7. Submit. Later versions: bump semver → new zip.
 
 ## What not to do
 

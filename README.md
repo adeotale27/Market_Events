@@ -1,12 +1,10 @@
-# Market Events (Chrome)
+# Market Pulse (Chrome)
 
-Standalone **Manifest V3** extension. **No Kite. No OI Pulse poller. No Mongo. No FastAPI.**
+Compact **Manifest V3** terminal for Indian index traders. **No Kite. No FastAPI. No Mongo.**
 
-Canonical repo: **https://github.com/adeotale27/Market_Events**
+Repo: **https://github.com/adeotale27/Market_Events**
 
 ## How to run
-
-There is no server to start. You load the folder into Chrome.
 
 ```bash
 git clone https://github.com/adeotale27/Market_Events.git
@@ -14,51 +12,49 @@ cd Market_Events
 git pull origin main
 ```
 
-1. Open Chrome and go to `chrome://extensions`
-2. Turn **Developer mode** on (top right)
-3. Click **Load unpacked**
-4. Select **this folder** — the one that contains `manifest.json` (not a subfolder)
-5. Pin **Market Events**. Click the icon. Click **Refresh**.
+1. Chrome → `chrome://extensions`
+2. Developer mode on
+3. **Load unpacked** → this folder (`manifest.json` at the root)
+4. Click the **Market Pulse** icon
 
-If FII/DII errors, open [nseindia.com](https://www.nseindia.com/) once in the same Chrome profile, then Refresh again.
+If you already loaded an older build: **Reload** the extension card after `git pull`.
 
-After you `git pull` code changes: on `chrome://extensions` click **Reload** on this extension card, then open the popup again.
+First open: **Stay ahead of the market** — Enable alerts or Not now. Alerts never auto-open the popup.
 
-Toolbar badge = NIFTY day’s % (green / red) during quotes.
+## Live quotes (market hours)
+
+There is **no broker backend in this repo**. Quotes are HTTPS from **Yahoo Finance** in your Chrome profile (same idea as a public chart, no API key):
+
+| Index | Yahoo symbol | Hours |
+|--------|----------------|--------|
+| NIFTY | `^NSEI` | 09:15–15:40 IST, ~1 min |
+| SENSEX | `^BSESN` | same |
+| BANKNIFTY | `^NSEBANK` | same |
+| India VIX | `^INDIAVIX` | same |
+| Heavyweights | `*.NS` (HDFC Bank, Reliance, …) | for “what’s moving” |
+
+FII/DII is NSE `fiidiiTradeReact` in this browser (open [nseindia.com](https://www.nseindia.com/) once if it fails). Calendars are JSON on GitHub / Options.
+
+Kite stays in OI Pulse. Do not paste tokens here.
 
 ## What you see
 
-Same four header tiles as OI Pulse, plus live index prints:
+Priority: **indexes → what’s moving → FII → next event → index risk**
 
-| Tile | Source | Who updates |
-|------|--------|-------------|
-| **Holiday** | `data/holidays.json` | Admin JSON (Options upload **or** commit on GitHub) |
-| **FII / DII** | NSE `fiidiiTradeReact` from this Chrome profile | Automatic (~3h + Refresh). **Never uploaded.** Last good print is kept if NSE fails. |
-| **Next Event** | `data/econ-events.json` (RBI, FOMC, CPI, GDP, Budget, NFP) | Commit / Options upload |
-| **Index Impact** | `data/index-impact/NIFTY.json` · `SENSEX.json` · `BANKNIFTY.json` | Admin per-index JSON |
+- **Header:** LIVE / PRE-MARKET / CLOSED / HOLIDAY
+- **Index row:** tap NIFTY / SENSEX / BNF (LTP + %)
+- **What’s moving:** 1–2 ranked lines (VIX, unusual index print, heavyweight, FII, nearby result). No OI/PCR/straddle without a live OI feed.
+- **Next event:** **only the next** macro print. Optional View all.
+- **Index risk:** for the **selected** index, the single highest-ranked constituent result/board meeting (weight × type × how soon). Empty calendar → no fake rows.
 
-**Index chips** (NIFTY / SENSEX / BANKNIFTY) switch Index Impact to that index only — same idea as Pulse `GET /events/{activeIndex}`.
+09:00 IST pre-market and **15:40 IST** close notifications on trading days if you enabled alerts.
 
-**Spots:** Yahoo `^NSEI` / `^BSESN` / `^NSEBANK` last + %. During 09:15–15:30 IST the worker refreshes about every minute. Opening the popup also refreshes if data is stale.
+## Admin JSON
 
-Color rules (Pulse-like): Holiday / Next Event go red for today–tomorrow; Index Impact red if a result/board meeting is within 7 days, blue for 8–14 days. FII tile goes red when FII cash is net selling.
+[ADMIN.md](ADMIN.md). Shared server = GitHub raw `data/` on `main`.
 
-## Data precedence
+## Chrome Web Store
 
-1. Files the admin picked on **chrome://extensions → Details → Extension options** (this browser)
-2. GitHub raw (`data/config.json` `remoteBase`, default `Market_Events` `main`) — this is the shared “server”
-3. JSON bundled in the zip / Load unpacked folder
+[PUBLISH.md](PUBLISH.md) · [PRIVACY.md](PRIVACY.md)
 
-## Version
-
-`VERSION` and `manifest.json` `"version"` must be the same semver (now **1.0.1**). See [PUBLISH.md](PUBLISH.md).
-
-## Admin
-
-[ADMIN.md](ADMIN.md) — holiday JSON, per-index impact JSON, Options page, GitHub as the file server.
-
-## Publish to the Web Store
-
-[PUBLISH.md](PUBLISH.md)
-
-Clone this repo only. See [PULL.md](PULL.md). Do not copy this tree into OI Pulse `main`.
+Version **1.1.0** lockstep `VERSION` ↔ `manifest.json`.

@@ -1,0 +1,26 @@
+{
+  "NIFTY": [
+    { "name": "HDFC Bank", "yahoo": "HDFCBANK.NS", "weightage": 13.1 },
+    { "name": "ICICI Bank", "yahoo": "ICICIBANK.NS", "weightage": 8.4 },
+    { "name": "Reliance", "yahoo": "RELIANCE.NS", "weightage": 8.2 },
+    { "name": "Infosys", "yahoo": "INFY.NS", "weightage": 4.8 },
+    { "name": "Bharti Airtel", "yahoo": "BHARTIARTL.NS", "weightage": 4.1 },
+    { "name": "TCS", "yahoo": "TCS.NS", "weightage": 3.9 }
+  ],
+  "SENSEX": [
+    { "name": "HDFC Bank", "yahoo": "HDFCBANK.NS", "weightage": 14.0 },
+    { "name": "ICICI Bank", "yahoo": "ICICIBANK.NS", "weightage": 9.5 },
+    { "name": "Reliance", "yahoo": "RELIANCE.NS", "weightage": 9.2 },
+    { "name": "Infosys", "yahoo": "INFY.NS", "weightage": 6.2 },
+    { "name": "TCS", "yahoo": "TCS.NS", "weightage": 5.1 },
+    { "name": "ITC", "yahoo": "ITC.NS", "weightage": 4.2 }
+  ],
+  "BANKNIFTY": [
+    { "name": "HDFC Bank", "yahoo": "HDFCBANK.NS", "weightage": 28.0 },
+    { "name": "ICICI Bank", "yahoo": "ICICIBANK.NS", "weightage": 23.0 },
+    { "name": "SBI", "yahoo": "SBIN.NS", "weightage": 9.5 },
+    { "name": "Kotak Bank", "yahoo": "KOTAKBANK.NS", "weightage": 8.0 },
+    { "name": "Axis Bank", "yahoo": "AXISBANK.NS", "weightage": 8.0 },
+    { "name": "IndusInd", "yahoo": "INDUSINDBK.NS", "weightage": 3.5 }
+  ]
+}

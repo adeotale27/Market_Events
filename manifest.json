@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Market Events",
-  "version": "1.0.1",
-  "description": "NSE holidays, FII/DII, next macro event, per-index impact, live NIFTY/SENSEX/BANKNIFTY. No Kite.",
+  "name": "Market Pulse",
+  "version": "1.1.0",
+  "description": "Compact Indian index pulse: live NIFTY/SENSEX/BANKNIFTY, VIX, FII/DII, next event, constituent risk. No account, no Kite.",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -11,18 +11,20 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Market Events",
+    "default_title": "Market Pulse",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png"
     }
   },
   "options_ui": { "page": "options.html", "open_in_tab": true },
-  "background": { "service_worker": "background.js" },
+  "background": { "service_worker": "background.js", "type": "module" },
   "permissions": ["storage", "alarms"],
+  "optional_permissions": ["notifications"],
   "host_permissions": [
     "https://www.nseindia.com/*",
     "https://query1.finance.yahoo.com/*",
+    "https://query2.finance.yahoo.com/*",
     "https://raw.githubusercontent.com/*"
   ]
 }

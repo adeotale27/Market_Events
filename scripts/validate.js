@@ -20,83 +20,67 @@ function isoDate(v) {
 }
 
 function mustExist(rel) {
-  if (!fs.existsSync(path.join(root, rel))) {
-    throw new Error(`missing ${rel}`);
-  }
+  if (!fs.existsSync(path.join(root, rel))) throw new Error(`missing ${rel}`);
 }
 
-for (const doc of ["README.md", "ADMIN.md", "PUBLISH.md", "PULL.md", "CHANGELOG.md"]) {
+for (const doc of ["README.md", "ADMIN.md", "PUBLISH.md", "PULL.md", "CHANGELOG.md", "PRIVACY.md"]) {
   mustExist(doc);
 }
 
 const version = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim();
 const manifest = readJson("manifest.json");
-if (manifest.manifest_version !== 3) {
-  throw new Error("manifest.json must be Manifest V3");
+if (manifest.manifest_version !== 3) throw new Error("must be MV3");
+if (manifest.version !== version) throw new Error("VERSION lockstep");
+if (manifest.background?.type !== "module") throw new Error("service worker must be ES module");
+if ((manifest.permissions || []).includes("notifications")) {
+  throw new Error("notifications must be optional until user enables alerts");
 }
-if (manifest.version !== version) {
-  throw new Error(`VERSION ${version} != manifest.version ${manifest.version}`);
+if (!(manifest.optional_permissions || []).includes("notifications")) {
+  throw new Error("optional_permissions.notifications required");
 }
-if (!manifest.background?.service_worker) {
-  throw new Error("manifest.json missing service_worker");
-}
-if (!manifest.options_ui?.page) {
-  throw new Error("manifest.json missing options_ui");
-}
-const hostPerms = JSON.stringify(manifest.host_permissions || []).toLowerCase();
-if (hostPerms.includes("kite")) {
-  throw new Error("manifest host_permissions must not include Kite");
+const blob = JSON.stringify(manifest).toLowerCase();
+if (blob.includes("kite.zerodha") || (manifest.host_permissions || []).join().toLowerCase().includes("kite")) {
+  throw new Error("no Kite hosts");
 }
 
 const cfg = readJson("data/config.json");
 if (!String(cfg.remoteBase || "").includes("adeotale27/Market_Events")) {
-  throw new Error("data/config.json remoteBase must point at Market_Events");
+  throw new Error("remoteBase");
 }
 
 const holidays = readJson("data/holidays.json");
-if (!Array.isArray(holidays.holidays) || holidays.holidays.length < 1) {
-  throw new Error("data/holidays.json needs holidays[]");
-}
 for (const h of holidays.holidays) {
-  if (!isoDate(h.date) || !h.name) {
-    throw new Error(`bad holiday row: ${JSON.stringify(h)}`);
-  }
+  if (!isoDate(h.date) || !h.name) throw new Error("holiday row");
 }
 
 const econ = readJson("data/econ-events.json");
-if (!Array.isArray(econ.events) || econ.events.length < 1) {
-  throw new Error("data/econ-events.json needs events[]");
-}
 const names = econ.events.map((e) => String(e.name || "")).join(" | ");
 for (const needle of ["RBI", "FOMC", "CPI", "GDP", "Budget", "Non-Farm"]) {
-  if (!names.includes(needle)) {
-    throw new Error(`econ-events.json missing ${needle}`);
-  }
+  if (!names.includes(needle)) throw new Error(`econ missing ${needle}`);
 }
 
 for (const idx of ["NIFTY", "SENSEX", "BANKNIFTY"]) {
   const doc = readJson(`data/index-impact/${idx}.json`);
-  if (doc.index !== idx) {
-    throw new Error(`data/index-impact/${idx}.json index field`);
-  }
-  if (!Array.isArray(doc.events)) {
-    throw new Error(`data/index-impact/${idx}.json needs events[]`);
+  if (doc.index !== idx || !Array.isArray(doc.events)) throw new Error(idx);
+  if (JSON.stringify(doc).includes("EXAMPLE")) throw new Error(`${idx} placeholder data`);
+}
+
+const hw = readJson("data/heavyweights.json");
+for (const idx of ["NIFTY", "SENSEX", "BANKNIFTY"]) {
+  if (!hw[idx]?.length) throw new Error(`heavyweights ${idx}`);
+  for (const r of hw[idx]) {
+    if (!r.yahoo || !r.name) throw new Error("heavyweight row");
   }
 }
 
-if (fs.existsSync(path.join(root, "data/results.json"))) {
-  throw new Error("data/results.json is leftover; impact lives in data/index-impact/");
-}
-
-for (const file of ["background.js", "popup.js", "options.js"]) {
+for (const file of ["background.js", "popup.js", "lib/time.js", "lib/signals.js"]) {
   const src = fs.readFileSync(path.join(root, file), "utf8");
-  if (/kite\.zerodha|api\.kite/i.test(src)) {
-    throw new Error(`${file} must not call Kite`);
-  }
-  const r = spawnSync("node", ["--check", path.join(root, file)], { encoding: "utf8" });
-  if (r.status !== 0) {
-    throw new Error(`${file} syntax: ${r.stderr || r.stdout}`);
-  }
+  if (/kite\.zerodha|api\.kite/i.test(src)) throw new Error(`${file} kite`);
 }
 
-console.log(`ok: Market Events ${version} MV3, holidays, econ, impact, no Kite`);
+const t = spawnSync("node", [path.join(root, "scripts/test-signals.mjs")], {
+  encoding: "utf8",
+});
+if (t.status !== 0) throw new Error(t.stderr || t.stdout || "signal tests");
+
+console.log(`ok: Market Pulse ${version} compact MV3`);

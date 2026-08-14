@@ -1,100 +1,34 @@
 /* global chrome */
+import {
+  todayIST,
+  daysBetween,
+  istParts,
+  isCashSessionIST,
+  sessionLabel,
+  nextTradingAlarmUtc,
+} from "./lib/time.js";
+import { pickIndexRisk, rankIntel, riskLevel } from "./lib/signals.js";
+
 const NSE_HOME = "https://www.nseindia.com/";
 const NSE_PAGE = "https://www.nseindia.com/reports/fii-dii";
 const NSE_API = "https://www.nseindia.com/api/fiidiiTradeReact";
-const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0 Safari/537.36";
 const INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
 const IMPACT_TYPES = ["Quarterly Results", "Board Meeting"];
-
 const YAHOO = {
   NIFTY: "^NSEI",
-  BANKNIFTY: "^NSEBANK",
   SENSEX: "^BSESN",
+  BANKNIFTY: "^NSEBANK",
+  VIX: "^INDIAVIX",
 };
+const SPOTS_STALE_MS = 5 * 60 * 1000;
+const FII_STALE_MS = 3 * 60 * 60 * 1000;
 
-function todayIST() {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
+function storageGet(keys) {
+  return new Promise((resolve) => chrome.storage.local.get(keys, resolve));
 }
 
-function daysBetween(fromISO, toISO) {
-  const a = new Date(`${fromISO}T00:00:00+05:30`);
-  const b = new Date(`${toISO}T00:00:00+05:30`);
-  return Math.round((b - a) / 86400000);
-}
-
-function istMinutes() {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata",
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-  }).formatToParts(new Date());
-  const h = Number(parts.find((p) => p.type === "hour")?.value || 0);
-  const m = Number(parts.find((p) => p.type === "minute")?.value || 0);
-  return h * 60 + m;
-}
-
-function isCashSessionIST() {
-  const mins = istMinutes();
-  return mins >= 9 * 60 + 15 && mins <= 15 * 60 + 30;
-}
-
-async function nseJson(url) {
-  await fetch(NSE_HOME, { headers: { "User-Agent": UA } });
-  await fetch(NSE_PAGE, { headers: { "User-Agent": UA, Referer: NSE_HOME } });
-  const r = await fetch(url, {
-    headers: { "User-Agent": UA, Accept: "application/json", Referer: NSE_PAGE },
-  });
-  if (!r.ok) throw new Error(`NSE ${r.status}`);
-  return r.json();
-}
-
-function parseNum(v) {
-  const n = Number(String(v ?? "").replace(/,/g, ""));
-  return Number.isFinite(n) ? n : null;
-}
-
-async function pullFii() {
-  const raw = await nseJson(NSE_API);
-  const rows = Array.isArray(raw) ? raw : raw?.data || [];
-  let fiiNet = null;
-  let diiNet = null;
-  let date = null;
-  for (const row of rows) {
-    const cat = String(row.category || row.CAT || "").toUpperCase();
-    const net = parseNum(row.netValue || row.net || row.NET);
-    date = date || row.date || row.tradedDate;
-    if (cat.includes("FII") || cat.includes("FPI")) fiiNet = net;
-    if (cat.includes("DII")) diiNet = net;
-  }
-  return { fiiNet, diiNet, date, at: Date.now() };
-}
-
-async function pullYahoo(symbol) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1m&range=1d`;
-  const r = await fetch(url, { headers: { Accept: "application/json" } });
-  if (!r.ok) throw new Error(`Yahoo ${r.status}`);
-  const j = await r.json();
-  const meta = j?.chart?.result?.[0]?.meta || {};
-  const last = meta.regularMarketPrice ?? meta.previousClose;
-  const prev = meta.chartPreviousClose ?? meta.previousClose;
-  const chg = last != null && prev ? last - prev : null;
-  const pct = chg != null && prev ? (chg / prev) * 100 : null;
-  return { last, prev, chg, pct };
-}
-
-async function pullSpots() {
-  const out = {};
-  for (const [idx, sym] of Object.entries(YAHOO)) {
-    try {
-      out[idx] = await pullYahoo(sym);
-    } catch (e) {
-      out[idx] = { error: String(e.message || e) };
-    }
-  }
-  out.at = Date.now();
-  out.session = isCashSessionIST() ? "open" : "closed";
-  return out;
+function storageSet(obj) {
+  return new Promise((resolve) => chrome.storage.local.set(obj, resolve));
 }
 
 async function loadBundled(path) {
@@ -106,13 +40,13 @@ async function loadBundled(path) {
 async function loadRemote(base, rel) {
   if (!base) return null;
   const url = `${base.replace(/\/$/, "")}/${rel.replace(/^\//, "")}`;
-  const r = await fetch(url, { cache: "no-store" });
-  if (!r.ok) return null;
-  return r.json();
-}
-
-function storageGet(keys) {
-  return new Promise((resolve) => chrome.storage.local.get(keys, resolve));
+  try {
+    const r = await fetch(url, { cache: "no-store" });
+    if (!r.ok) return null;
+    return r.json();
+  } catch {
+    return null;
+  }
 }
 
 async function resolveJson(kind, bundledPath, remoteRel) {
@@ -132,6 +66,118 @@ async function resolveJson(kind, bundledPath, remoteRel) {
   return { doc: await loadBundled(bundledPath), source: "bundled" };
 }
 
+function parseNum(v) {
+  const n = Number(String(v ?? "").replace(/,/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+async function nseJson(url) {
+  await fetch(NSE_HOME);
+  await fetch(NSE_PAGE, { headers: { Referer: NSE_HOME } });
+  const r = await fetch(url, {
+    headers: { Accept: "application/json", Referer: NSE_PAGE },
+  });
+  if (!r.ok) throw new Error(`NSE ${r.status}`);
+  return r.json();
+}
+
+async function pullFii() {
+  const raw = await nseJson(NSE_API);
+  const rows = Array.isArray(raw) ? raw : raw?.data || [];
+  let fiiNet = null;
+  let diiNet = null;
+  let date = null;
+  for (const row of rows) {
+    const cat = String(row.category || row.CAT || "").toUpperCase();
+    const net = parseNum(row.netValue || row.net || row.NET);
+    date = date || row.date || row.tradedDate;
+    if (cat.includes("FII") || cat.includes("FPI")) fiiNet = net;
+    if (cat.includes("DII")) diiNet = net;
+  }
+  return { fiiNet, diiNet, date, at: Date.now() };
+}
+
+async function pullYahoo(symbol) {
+  const urls = [
+    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1m&range=1d`,
+    `https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1m&range=1d`,
+  ];
+  let lastErr = "Yahoo failed";
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!r.ok) {
+        lastErr = `Yahoo ${r.status}`;
+        continue;
+      }
+      const j = await r.json();
+      const meta = j?.chart?.result?.[0]?.meta || {};
+      const last = meta.regularMarketPrice ?? meta.previousClose;
+      const prev = meta.chartPreviousClose ?? meta.previousClose;
+      const chg = last != null && prev ? last - prev : null;
+      const pct = chg != null && prev ? (chg / prev) * 100 : null;
+      return {
+        last,
+        prev,
+        chg,
+        pct,
+        high: meta.regularMarketDayHigh ?? null,
+        low: meta.regularMarketDayLow ?? null,
+        symbol,
+        at: Date.now(),
+      };
+    } catch (e) {
+      lastErr = String(e.message || e);
+    }
+  }
+  throw new Error(lastErr);
+}
+
+async function pullSpots() {
+  const out = {};
+  await Promise.all(
+    Object.entries(YAHOO).map(async ([idx, sym]) => {
+      try {
+        out[idx] = await pullYahoo(sym);
+      } catch (e) {
+        out[idx] = { error: String(e.message || e) };
+      }
+    }),
+  );
+  out.at = Date.now();
+  out.session = isCashSessionIST() ? "open" : "closed";
+  return out;
+}
+
+async function pullMovers() {
+  let hw = { NIFTY: [], SENSEX: [], BANKNIFTY: [] };
+  try {
+    hw = await loadBundled("data/heavyweights.json");
+  } catch {
+    /* ignore */
+  }
+  const byIndex = {};
+  await Promise.all(
+    INDEXES.map(async (idx) => {
+      const rows = hw[idx] || [];
+      const quotes = await Promise.all(
+        rows.map(async (row) => {
+          try {
+            const q = await pullYahoo(row.yahoo);
+            return { ...row, ...q };
+          } catch {
+            return { ...row, error: true };
+          }
+        }),
+      );
+      byIndex[idx] = quotes
+        .filter((q) => q.pct != null)
+        .sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct));
+    }),
+  );
+  return byIndex;
+}
+
 function normalizeImpact(doc, index) {
   const events = (doc?.events || [])
     .map((e) => {
@@ -147,12 +193,7 @@ function normalizeImpact(doc, index) {
       };
     })
     .filter((e) => e.days_remaining == null || e.days_remaining >= 0)
-    .filter((e) => IMPACT_TYPES.includes(e.event_type))
-    .sort(
-      (a, b) =>
-        (a.days_remaining ?? 99) - (b.days_remaining ?? 99) ||
-        -((a.weightage || 0) - (b.weightage || 0)),
-    );
+    .filter((e) => IMPACT_TYPES.includes(e.event_type));
   return { index, events };
 }
 
@@ -161,6 +202,28 @@ function holidayStatus(daysAway) {
   if (daysAway === 1) return "tomorrow";
   if (daysAway <= 6) return "this-week";
   return "upcoming";
+}
+
+function holidayDateSet(holidays) {
+  return new Set((holidays || []).map((h) => h.date));
+}
+
+function decoratePack(pack) {
+  const holidayToday = (pack.holidays || []).some((h) => h.daysAway === 0);
+  pack.session = {
+    label: sessionLabel(new Date(), holidayToday),
+    clock: istParts().hour.toString().padStart(2, "0") + ":" + String(istParts().minute).padStart(2, "0"),
+    holidayToday,
+  };
+  pack.risk = {};
+  pack.intelByIndex = {};
+  for (const idx of INDEXES) {
+    const abs = Math.abs(pack.spots?.[idx]?.pct || 0);
+    const best = pickIndexRisk(pack.impact?.[idx]?.events, abs);
+    pack.risk[idx] = best ? { ...best, level: riskLevel(best) } : null;
+    pack.intelByIndex[idx] = rankIntel(pack, idx);
+  }
+  return pack;
 }
 
 async function refreshAll() {
@@ -189,8 +252,12 @@ async function refreshAll() {
 
   const econ = (econPack.doc.events || [])
     .filter((e) => e.date >= today)
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(0, 20)
+    .sort((a, b) => {
+      const rank = { critical: 0, high: 1, medium: 2, low: 3 };
+      const d = a.date.localeCompare(b.date);
+      if (d) return d;
+      return (rank[a.impact] ?? 9) - (rank[b.impact] ?? 9);
+    })
     .map((e) => ({ ...e, daysAway: daysBetween(today, e.date) }));
 
   const pack = {
@@ -202,6 +269,7 @@ async function refreshAll() {
       holidays: holPack.source,
       econ: econPack.source,
       impact: impactSource,
+      quotes: "yahoo",
     },
     at: Date.now(),
   };
@@ -211,7 +279,7 @@ async function refreshAll() {
   } catch (e) {
     if (prev.fii && (prev.fii.fiiNet != null || prev.fii.diiNet != null)) {
       pack.fii = { ...prev.fii, stale: true };
-      pack.fiiError = `${String(e.message || e)} · showing last good pull`;
+      pack.fiiError = String(e.message || e);
     } else {
       pack.fiiError = String(e.message || e);
     }
@@ -222,7 +290,13 @@ async function refreshAll() {
     pack.spotsError = String(e.message || e);
     if (prev.spots) pack.spots = prev.spots;
   }
-  await chrome.storage.local.set({ radar: pack });
+  try {
+    pack.movers = await pullMovers();
+  } catch {
+    pack.movers = prev.movers || {};
+  }
+  decoratePack(pack);
+  await storageSet({ radar: pack });
   await updateBadge(pack.spots);
   return pack;
 }
@@ -236,12 +310,9 @@ async function updateBadge(spots) {
   const text = `${n.pct >= 0 ? "+" : ""}${Number(n.pct).toFixed(1)}`.slice(0, 4);
   await chrome.action.setBadgeText({ text });
   await chrome.action.setBadgeBackgroundColor({
-    color: n.pct >= 0 ? "#047857" : "#be123c",
+    color: n.pct >= 0 ? "#059669" : "#e11d48",
   });
 }
-
-const SPOTS_STALE_MS = 5 * 60 * 1000;
-const FII_STALE_MS = 3 * 60 * 60 * 1000;
 
 async function ensureFresh() {
   const radar = (await storageGet(["radar"])).radar;
@@ -254,28 +325,111 @@ async function ensureFresh() {
     try {
       radar.spots = await pullSpots();
       radar.at = Date.now();
-      await chrome.storage.local.set({ radar });
+      decoratePack(radar);
+      await storageSet({ radar });
       await updateBadge(radar.spots);
     } catch {
-      /* keep last spots */
+      /* keep last */
     }
   }
   return radar;
 }
 
-function armAlarms() {
+async function holidayDates() {
+  try {
+    const holPack = await resolveJson("holidays", "data/holidays.json", "data/holidays.json");
+    return holidayDateSet(holPack.doc?.holidays || []);
+  } catch {
+    return new Set();
+  }
+}
+
+async function scheduleBriefs() {
+  const dates = await holidayDates();
+  const pre = nextTradingAlarmUtc(9, 0, dates);
+  const close = nextTradingAlarmUtc(15, 40, dates);
+  await chrome.alarms.clear("brief-premarket");
+  await chrome.alarms.clear("brief-close");
+  if (pre) chrome.alarms.create("brief-premarket", { when: pre });
+  if (close) chrome.alarms.create("brief-close", { when: close });
+}
+
+async function armAlarms() {
   chrome.alarms.create("spots", { periodInMinutes: 1 });
   chrome.alarms.create("fii-daily", { periodInMinutes: 180 });
+  await scheduleBriefs();
+}
+
+async function hasNotifyPermission() {
+  return chrome.permissions.contains({ permissions: ["notifications"] });
+}
+
+async function notify(id, title, message) {
+  const s = await storageGet(["alertsEnabled", "lastBrief"]);
+  if (!s.alertsEnabled) return;
+  if (!(await hasNotifyPermission())) return;
+  const last = s.lastBrief || {};
+  if (last[id] === todayIST()) return;
+  await chrome.notifications.create(id, {
+    type: "basic",
+    iconUrl: "icons/icon128.png",
+    title,
+    message: message || "Open Market Pulse",
+    priority: 1,
+  });
+  last[id] = todayIST();
+  await storageSet({ lastBrief: last });
+}
+
+async function openPulseWindow() {
+  try {
+    await chrome.action.openPopup();
+    return;
+  } catch {
+    /* fall through */
+  }
+  await chrome.windows.create({
+    url: chrome.runtime.getURL("popup.html"),
+    type: "popup",
+    width: 400,
+    height: 560,
+    focused: true,
+  });
+}
+
+async function onBrief(kind) {
+  const dates = await holidayDates();
+  if (!isTradingDaySafe(dates)) {
+    await scheduleBriefs();
+    return;
+  }
+  const pack = await refreshAll().catch(() => null);
+  const idx = "NIFTY";
+  const line = pack?.intelByIndex?.[idx]?.[0]?.text || pack?.econ?.[0]?.name || "Briefing ready";
+  if (kind === "premarket") {
+    await notify("brief-premarket", "Market Pulse · Pre-market briefing ready", line);
+  } else {
+    await notify("brief-close", "Market Pulse · Market closed · Key moves detected", line);
+  }
+  await scheduleBriefs();
+}
+
+function isTradingDaySafe(dates) {
+  const iso = todayIST();
+  const p = istParts();
+  if (p.weekend) return false;
+  return !dates.has(iso);
 }
 
 chrome.runtime.onInstalled.addListener(() => {
-  armAlarms();
+  armAlarms().catch(() => {});
   refreshAll().catch(() => {});
 });
 chrome.runtime.onStartup.addListener(() => {
-  armAlarms();
+  armAlarms().catch(() => {});
   refreshAll().catch(() => {});
 });
+
 chrome.alarms.onAlarm.addListener((a) => {
   if (a.name === "fii-daily") {
     refreshAll().catch(() => {});
@@ -288,13 +442,34 @@ chrome.alarms.onAlarm.addListener((a) => {
           const s = await storageGet(["radar"]);
           const radar = s.radar || {};
           radar.spots = spots;
-          await chrome.storage.local.set({ radar });
+          decoratePack(radar);
+          await storageSet({ radar });
           await updateBadge(spots);
         })
         .catch(() => {});
     }
+    return;
+  }
+  if (a.name === "brief-premarket") {
+    onBrief("premarket").catch(() => {});
+    return;
+  }
+  if (a.name === "brief-close") {
+    onBrief("close").catch(() => {});
   }
 });
+
+let notifyBound = false;
+function bindNotifyClick() {
+  if (notifyBound || !chrome.notifications?.onClicked) return;
+  notifyBound = true;
+  chrome.notifications.onClicked.addListener((id) => {
+    chrome.notifications.clear(id);
+    openPulseWindow().catch(() => {});
+  });
+}
+bindNotifyClick();
+
 chrome.runtime.onMessage.addListener((msg, _s, send) => {
   if (msg?.type === "refresh") {
     refreshAll().then(send).catch((e) => send({ error: String(e) }));
@@ -302,6 +477,30 @@ chrome.runtime.onMessage.addListener((msg, _s, send) => {
   }
   if (msg?.type === "ensure") {
     ensureFresh().then(send).catch((e) => send({ error: String(e) }));
+    return true;
+  }
+  if (msg?.type === "enable-alerts") {
+    chrome.permissions
+      .request({ permissions: ["notifications"] })
+      .then(async (ok) => {
+        if (ok) {
+          await storageSet({ alertsEnabled: true, consentSeen: true });
+          bindNotifyClick();
+          await scheduleBriefs();
+        } else {
+          await storageSet({ alertsEnabled: false, consentSeen: true });
+        }
+        send({ ok, alertsEnabled: !!ok });
+      })
+      .catch((e) => send({ ok: false, error: String(e) }));
+    return true;
+  }
+  if (msg?.type === "disable-alerts") {
+    storageSet({ alertsEnabled: false, consentSeen: true }).then(() => send({ ok: true }));
+    return true;
+  }
+  if (msg?.type === "dismiss-consent") {
+    storageSet({ consentSeen: true, alertsEnabled: false }).then(() => send({ ok: true }));
     return true;
   }
   return false;

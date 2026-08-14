@@ -50,7 +50,7 @@ Here the join is already done in JSON:
 }
 ```
 
-Popup chips show **only** the selected index. High-impact filter matches Pulse: **Quarterly Results** and **Board Meeting**, sorted by days remaining then weightage.
+Popup chips show **only** the selected index. Rank = index weight × event type (results > board) × how soon × a small boost if the index is already moving. High-impact filter: **Quarterly Results** and **Board Meeting**. Empty `events: []` is valid — never ship fake EXAMPLE rows.
 
 Selecting NIFTY / SENSEX / BANKNIFTY in the popup is the same as changing `activeIndex` on the Pulse desk.
 
