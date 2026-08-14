@@ -1,9 +1,10 @@
 /* global chrome */
-import { eventImpactLabel, relLabel } from "./lib/signals.js";
+import { eventImpactLabel, relLabel, riskEmptyMessage } from "./lib/signals.js";
 import { istClock } from "./lib/time.js";
 
 const INDEXES = ["NIFTY", "SENSEX", "BANKNIFTY"];
 const GH = "https://github.com/adeotale27/Market_Events/issues/new";
+const VERSION = "1.2.0";
 
 function fmtPx(n) {
   if (n == null || !Number.isFinite(Number(n))) return "—";
@@ -33,15 +34,29 @@ function escapeHtml(s) {
 }
 
 function render(pack, index, showAll) {
+  document.getElementById("ver").textContent = `v${VERSION}`;
+  document.getElementById("ver2").textContent = `v${VERSION}`;
   const sess = pack?.session?.label || "CLOSED";
   const pill = document.getElementById("sess");
   pill.textContent = sess;
   pill.className = `pill ${sess}`;
 
+  const f = pack?.fii;
+  const fiiEl = document.getElementById("fii");
+  if (f) {
+    fiiEl.innerHTML = `<div class="k">FII / DII · CASH ₹ CR</div>
+      FII <span class="${cls(f.fiiNet)}">${fmtCr(f.fiiNet)}</span>
+      · DII <span class="${cls(f.diiNet)}">${fmtCr(f.diiNet)}</span>
+      ${f.date ? ` · ${escapeHtml(f.date)}` : ""}
+      ${f.stale || pack?.fiiError ? `<span class="stale"> · last good</span>` : ""}`;
+  } else {
+    fiiEl.innerHTML = `<div class="k">FII / DII</div>${escapeHtml(pack?.fiiError || "Open nseindia.com once, then Refresh")}`;
+  }
+
   const vix = pack?.spots?.VIX || {};
   document.getElementById("vix").innerHTML = vix.last != null
-    ? `India VIX <span class="${cls(vix.pct)}">${Number(vix.last).toFixed(2)} ${fmtPct(vix.pct)}</span>`
-    : "";
+    ? `<div class="k">INDIA VIX</div><span class="${cls(vix.pct)}">${Number(vix.last).toFixed(2)} ${fmtPct(vix.pct)}</span>`
+    : `<div class="k">INDIA VIX</div>—`;
 
   document.getElementById("indexes").innerHTML = INDEXES.map((idx) => {
     const s = pack?.spots?.[idx] || {};
@@ -54,20 +69,18 @@ function render(pack, index, showAll) {
     </button>`;
   }).join("");
 
-  const intel = pack?.intelByIndex?.[index] || [];
-  document.getElementById("intel").innerHTML = `<div class="k">WHAT’S MOVING</div>${
-    intel.map((s) => `<div class="${s.tone || ""}">${escapeHtml(s.text)}</div>`).join("")
-  }`;
-
-  const f = pack?.fii;
-  const fiiEl = document.getElementById("fii");
-  if (f) {
-    fiiEl.innerHTML = `FII <span class="${cls(f.fiiNet)}">${fmtCr(f.fiiNet)}</span>
-      · DII <span class="${cls(f.diiNet)}">${fmtCr(f.diiNet)}</span>
-      ${f.stale || pack?.fiiError ? `<span class="stale"> · last good</span>` : ""}`;
+  const h = (pack?.holidays || [])[0];
+  const hol = document.getElementById("holiday");
+  if (!h) {
+    hol.innerHTML = `<div class="k">NEXT HOLIDAY</div>No upcoming holiday in the NSE list`;
   } else {
-    fiiEl.textContent = pack?.fiiError || "FII/DII — Refresh after opening nseindia.com once";
+    hol.innerHTML = `<div class="k">NEXT HOLIDAY</div>${escapeHtml(h.name)} · ${escapeHtml(relLabel(h.daysAway))} · ${escapeHtml(h.date)}`;
   }
+
+  const intel = pack?.intelByIndex?.[index] || [];
+  document.getElementById("intel").innerHTML = `<div class="k">WHAT’S MOVING</div>
+    <div class="hint">Largest unusual print for ${escapeHtml(index)}: VIX, index %, or a heavyweight vs its weight.</div>
+    ${intel.map((s) => `<div class="${s.tone || ""}">${escapeHtml(s.text)}</div>`).join("")}`;
 
   const ev = (pack?.econ || [])[0];
   const next = document.getElementById("next");
@@ -81,15 +94,21 @@ function render(pack, index, showAll) {
   }
 
   const risk = pack?.risk?.[index];
+  const weekRisk = risk && risk.days_remaining != null && risk.days_remaining <= 7 ? risk : null;
   const riskEl = document.getElementById("risk");
-  if (!risk) {
-    riskEl.innerHTML = `<div class="k">${escapeHtml(index)} RISK</div>No constituent results/board meetings in calendar`;
-  } else {
-    const kind = risk.event_type === "Quarterly Results" ? "Results" : "Board";
-    const wt = risk.weightage != null ? ` · ${risk.weightage}% wt` : "";
+  const empty = riskEmptyMessage(index, {
+    today: pack?.today,
+    events: pack?.impact?.[index]?.events || [],
+    updated: pack?.impactMeta?.[index]?.updated,
+  });
+  if (weekRisk) {
+    const kind = weekRisk.event_type === "Quarterly Results" ? "Results" : "Board";
+    const wt = weekRisk.weightage != null ? ` · ${weekRisk.weightage}% wt` : "";
     riskEl.innerHTML = `<div class="k">${escapeHtml(index)} RISK</div>
-      ${escapeHtml(risk.name)} · ${kind} ${escapeHtml(relLabel(risk.days_remaining))}${wt}
-      ${risk.level ? ` · ${risk.level}` : ""}`;
+      ${escapeHtml(weekRisk.name)} · ${kind} ${escapeHtml(relLabel(weekRisk.days_remaining))}${wt}
+      ${weekRisk.level ? ` · ${weekRisk.level}` : ""}`;
+  } else {
+    riskEl.innerHTML = `<div class="k">${escapeHtml(index)} RISK</div>${escapeHtml(empty)}`;
   }
 
   const all = document.getElementById("allEvents");
@@ -104,8 +123,7 @@ function render(pack, index, showAll) {
 
   const age = pack?.at ? istClock(pack.at) : "—";
   const stale = pack?.at && Date.now() - pack.at > 8 * 60 * 1000;
-  document.getElementById("meta").textContent =
-    `${age} IST · Yahoo quotes · ${stale ? "stale · tap ↻" : "fresh"}`;
+  document.getElementById("meta").textContent = `${age} IST${stale ? " · tap ↻" : ""}`;
 }
 
 function load() {
@@ -127,8 +145,7 @@ document.getElementById("next").addEventListener("click", (e) => {
   if (e.target.id !== "viewAll") return;
   e.preventDefault();
   chrome.storage.local.get(["showAllEvents"], (s) => {
-    const next = !s.showAllEvents;
-    chrome.storage.local.set({ showAllEvents: next }, () => load());
+    chrome.storage.local.set({ showAllEvents: !s.showAllEvents }, () => load());
   });
 });
 
@@ -140,6 +157,14 @@ document.getElementById("settingsBtn").onclick = () => {
 };
 document.getElementById("closeSheet").onclick = () => {
   document.getElementById("settings").classList.add("hidden");
+};
+document.getElementById("dockBtn").onclick = () => {
+  chrome.windows.getCurrent((w) => {
+    if (chrome.sidePanel?.open) chrome.sidePanel.open({ windowId: w.id });
+  });
+};
+document.getElementById("miniBtn").onclick = () => {
+  chrome.runtime.sendMessage({ type: "open-mini" });
 };
 document.getElementById("enableAlerts").onclick = () => {
   chrome.runtime.sendMessage({ type: "enable-alerts" }, () => load());

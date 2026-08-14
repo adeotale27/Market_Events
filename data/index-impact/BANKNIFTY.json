@@ -1,5 +1,6 @@
 {
   "index": "BANKNIFTY",
-  "note": "Admin: commit NSE event-calendar join (name, date, event_type, weightage, symbol). Empty until a real file is uploaded.",
+  "updated": "2026-08-14",
+  "note": "Admin: commit NSE event-calendar join. File is treated as ~1 month of coverage from `updated`.",
   "events": []
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+- Light Pulse-style theme, 14px rounded cards
+- FII/DII above VIX; next holiday restored
+- Index risk: no event in the next 7 days, or empty/expired ~1-month admin file (uses `updated`)
+- Dock to Chrome’s right side panel; mini rotating ticker window (buttons next to Refresh)
+- Version in the header; footer no longer says Yahoo
+- What’s moving: heaviest unusual print for the selected index (VIX / index % / heavyweight)
+
 ## 1.1.0
 
 - Compact dark Market Pulse popup (~372px): indexes, 1–2 intel lines, one next event, one index-risk row

@@ -62,6 +62,7 @@ for (const needle of ["RBI", "FOMC", "CPI", "GDP", "Budget", "Non-Farm"]) {
 for (const idx of ["NIFTY", "SENSEX", "BANKNIFTY"]) {
   const doc = readJson(`data/index-impact/${idx}.json`);
   if (doc.index !== idx || !Array.isArray(doc.events)) throw new Error(idx);
+  if (doc.updated && !isoDate(doc.updated)) throw new Error(`${idx} updated`);
   if (JSON.stringify(doc).includes("EXAMPLE")) throw new Error(`${idx} placeholder data`);
 }
 

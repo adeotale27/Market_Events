@@ -50,7 +50,9 @@ Here the join is already done in JSON:
 }
 ```
 
-Popup chips show **only** the selected index. Rank = index weight × event type (results > board) × how soon × a small boost if the index is already moving. High-impact filter: **Quarterly Results** and **Board Meeting**. Empty `events: []` is valid — never ship fake EXAMPLE rows.
+Popup chips show **only** the selected index. Rank = index weight × event type (results > board) × how soon × a small boost if the index is already moving. High-impact filter: **Quarterly Results** and **Board Meeting**.
+
+Each file should include `"updated": "YYYY-MM-DD"`. That stamp is treated as **~30 days of coverage**. If no constituent has a result/board meeting in that window, the popup says so. If the stamp is older than 30 days, it asks for a new upload. Empty `events: []` is valid.
 
 Selecting NIFTY / SENSEX / BANKNIFTY in the popup is the same as changing `activeIndex` on the Pulse desk.
 

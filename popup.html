@@ -20,22 +20,25 @@
   </div>
 
   <header>
-    <div>
+    <div class="brand">
       <strong>Market Pulse</strong>
+      <span class="ver" id="ver">v1.2.0</span>
       <span id="sess" class="pill">—</span>
     </div>
     <div class="tools">
       <button id="refresh" type="button" title="Refresh">↻</button>
+      <button id="dockBtn" type="button" title="Keep on the right (side panel)">◨</button>
+      <button id="miniBtn" type="button" title="Mini ticker window">▣</button>
       <button id="settingsBtn" type="button" title="Settings">⚙</button>
     </div>
   </header>
 
+  <div class="strip" id="fii"></div>
   <div class="vix" id="vix"></div>
   <div class="indexes" id="indexes"></div>
+  <div class="strip" id="holiday"></div>
 
   <section class="intel" id="intel"></section>
-  <p class="fii" id="fii"></p>
-
   <section class="rowline" id="next"></section>
   <section class="rowline" id="risk"></section>
   <div id="allEvents" class="all hidden"></div>
@@ -49,6 +52,7 @@
     <a id="suggest" target="_blank" rel="noreferrer">Suggest a feature</a>
     <a id="badData" target="_blank" rel="noreferrer">Report incorrect data</a>
     <a id="problem" target="_blank" rel="noreferrer">Report a problem</a>
+    <p class="ver">Market Pulse <span id="ver2">v1.2.0</span></p>
     <button id="closeSheet" type="button" class="ghost">Close</button>
   </div>
 

@@ -1,4 +1,4 @@
-import { pickIndexRisk, rankIntel, impactScore } from "../lib/signals.js";
+import { pickIndexRisk, rankIntel, impactScore, riskEmptyMessage } from "../lib/signals.js";
 import { isCashSessionIST, sessionLabel, nextTradingAlarmUtc, isTradingDay } from "../lib/time.js";
 
 const ev = {
@@ -44,4 +44,23 @@ if (!when || when <= Date.parse("2026-08-14T01:00:00Z")) throw new Error("alarm 
 sessionLabel(new Date("2026-08-14T04:00:00Z"), false); // smoke
 isCashSessionIST(new Date("2026-08-14T04:00:00Z"));
 
-console.log("signal tests ok");
+const emptyWeek = riskEmptyMessage("BANKNIFTY", {
+  today: "2026-08-14",
+  updated: "2026-08-14",
+  events: [{ name: "HDFC Bank", days_remaining: 20, event_type: "Quarterly Results" }],
+});
+if (!/next 7 days/i.test(emptyWeek)) throw new Error("week empty copy");
+
+const emptyMonth = riskEmptyMessage("NIFTY", {
+  today: "2026-08-14",
+  updated: "2026-08-14",
+  events: [],
+});
+if (!/this month/i.test(emptyMonth)) throw new Error("month empty copy");
+
+const expired = riskEmptyMessage("SENSEX", {
+  today: "2026-09-20",
+  updated: "2026-08-14",
+  events: [],
+});
+if (!/ended/i.test(expired)) throw new Error("expired calendar copy");

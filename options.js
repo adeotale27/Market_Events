@@ -24,7 +24,7 @@ function readJsonFile(file) {
 async function putAdmin(kind, doc) {
   const s = await chrome.storage.local.get(["adminFiles"]);
   const adminFiles = s.adminFiles || {};
-  adminFiles[kind] = doc;
+  adminFiles[kind] = { ...doc, updated: doc.updated || new Date().toISOString().slice(0, 10) };
   adminFiles[`${kind}At`] = Date.now();
   await chrome.storage.local.set({ adminFiles });
 }

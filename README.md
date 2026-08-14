@@ -19,6 +19,11 @@ git pull origin main
 
 If you already loaded an older build: **Reload** the extension card after `git pull`.
 
+Toolbar next to Refresh:
+
+- **◨ Dock** — pins Market Pulse on the **right side** of the Chrome window (side panel). You can keep working.
+- **▣ Mini** — a small floating window that **rotates** NIFTY / SENSEX / BNF. Drag it anywhere.
+
 First open: **Stay ahead of the market** — Enable alerts or Not now. Alerts never auto-open the popup.
 
 ## Live quotes (market hours)
@@ -39,13 +44,11 @@ Kite stays in OI Pulse. Do not paste tokens here.
 
 ## What you see
 
-Priority: **indexes → what’s moving → FII → next event → index risk**
+Priority: **FII/DII → VIX → indexes → holiday → what’s moving → next event → index risk**
 
-- **Header:** LIVE / PRE-MARKET / CLOSED / HOLIDAY
-- **Index row:** tap NIFTY / SENSEX / BNF (LTP + %)
-- **What’s moving:** 1–2 ranked lines (VIX, unusual index print, heavyweight, FII, nearby result). No OI/PCR/straddle without a live OI feed.
-- **Next event:** **only the next** macro print. Optional View all.
-- **Index risk:** for the **selected** index, the single highest-ranked constituent result/board meeting (weight × type × how soon). Empty calendar → no fake rows.
+- **What’s moving:** for the **selected** index only. Ranked from VIX jump, index % move / day high-low, then the heaviest constituent’s live % × weight. Not OI.
+- **Next holiday:** next NSE holiday from `data/holidays.json`.
+- **Index risk:** event in the next **7 days**, else a clear “no event this week / this month’s file / file expired (updated+30d)” line.
 
 09:00 IST pre-market and **15:40 IST** close notifications on trading days if you enabled alerts.
 
@@ -57,4 +60,4 @@ Priority: **indexes → what’s moving → FII → next event → index risk**
 
 [PUBLISH.md](PUBLISH.md) · [PRIVACY.md](PRIVACY.md)
 
-Version **1.1.0** lockstep `VERSION` ↔ `manifest.json`.
+Version **1.2.0** lockstep `VERSION` ↔ `manifest.json`.

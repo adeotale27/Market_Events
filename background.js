@@ -232,6 +232,7 @@ async function refreshAll() {
   const econPack = await resolveJson("econ", "data/econ-events.json", "data/econ-events.json");
   const impact = {};
   const impactSource = {};
+  const impactMeta = {};
   for (const idx of INDEXES) {
     const p = await resolveJson(
       `impact-${idx}`,
@@ -239,7 +240,15 @@ async function refreshAll() {
       `data/index-impact/${idx}.json`,
     );
     impact[idx] = normalizeImpact(p.doc, idx);
+    const adminAt = (await storageGet(["adminFiles"])).adminFiles?.[`impact-${idx}At`];
+    const updated =
+      p.doc.updated ||
+      (typeof adminAt === "number"
+        ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(adminAt))
+        : null);
     impactSource[idx] = p.source;
+    impactMeta[idx] = { updated, source: p.source };
+
   }
 
   const holidays = (Array.isArray(holPack.doc?.holidays) ? holPack.doc.holidays : [])
@@ -271,6 +280,7 @@ async function refreshAll() {
       impact: impactSource,
       quotes: "yahoo",
     },
+    impactMeta,
     at: Date.now(),
   };
   const prev = (await storageGet(["radar"])).radar || {};
@@ -424,6 +434,9 @@ function isTradingDaySafe(dates) {
 chrome.runtime.onInstalled.addListener(() => {
   armAlarms().catch(() => {});
   refreshAll().catch(() => {});
+  if (chrome.sidePanel?.setPanelBehavior) {
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
+  }
 });
 chrome.runtime.onStartup.addListener(() => {
   armAlarms().catch(() => {});
@@ -501,6 +514,19 @@ chrome.runtime.onMessage.addListener((msg, _s, send) => {
   }
   if (msg?.type === "dismiss-consent") {
     storageSet({ consentSeen: true, alertsEnabled: false }).then(() => send({ ok: true }));
+    return true;
+  }
+  if (msg?.type === "open-mini") {
+    chrome.windows
+      .create({
+        url: chrome.runtime.getURL("mini.html"),
+        type: "popup",
+        width: 348,
+        height: 92,
+        focused: true,
+      })
+      .then(() => send({ ok: true }))
+      .catch((e) => send({ ok: false, error: String(e) }));
     return true;
   }
   return false;
