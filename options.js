@@ -58,9 +58,17 @@ for (const idx of ["NIFTY", "SENSEX", "BANKNIFTY"]) {
   );
 }
 
-chrome.storage.local.get(["config"], (s) => {
+chrome.storage.local.get(["config", "radar"], (s) => {
   document.getElementById("remoteBase").value =
     s.config?.remoteBase || "https://raw.githubusercontent.com/adeotale27/Market_Events/main";
+  const src = s.radar?.sources;
+  if (src) {
+    const impact = src.impact
+      ? Object.entries(src.impact).map(([k, v]) => `${k}=${v}`).join(" ")
+      : "";
+    document.getElementById("sources").textContent =
+      `Last load: holiday ${src.holidays || "—"} · econ ${src.econ || "—"} · ${impact}`;
+  }
 });
 
 document.getElementById("saveRemote").onclick = async () => {

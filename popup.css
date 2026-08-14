@@ -15,6 +15,14 @@ h2 { margin: 0 0 4px; font-size: 10px; letter-spacing: .12em; text-transform: up
 .row { padding: 4px 0; border-top: 1px solid #f1f5f9; }
 .row:first-child { border-top: 0; }
 .urgent { color: #be123c; font-weight: 700; }
+.soon { color: #0369a1; }
+.lead { font-weight: 700; }
+.sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+.fii-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.fii-grid div { background: #f8fafc; border-radius: 4px; padding: 6px; }
+.fii-grid span { display: block; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: #64748b; }
+.fii-grid b { font-size: 14px; }
 .tile.red { border-color: #f43f5e; background: #fff1f2; }
 .tile.amber { border-color: #fbbf24; background: #fffbeb; }
 .tile.blue { border-color: #0ea5e9; background: #f0f9ff; }
+.meta { padding: 0 12px 12px; font-size: 10px; color: #64748b; }

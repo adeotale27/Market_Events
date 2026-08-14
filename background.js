@@ -205,18 +205,62 @@ async function refreshAll() {
     },
     at: Date.now(),
   };
+  const prev = (await storageGet(["radar"])).radar || {};
   try {
     pack.fii = await pullFii();
   } catch (e) {
-    pack.fiiError = String(e.message || e);
+    if (prev.fii && (prev.fii.fiiNet != null || prev.fii.diiNet != null)) {
+      pack.fii = { ...prev.fii, stale: true };
+      pack.fiiError = `${String(e.message || e)} · showing last good pull`;
+    } else {
+      pack.fiiError = String(e.message || e);
+    }
   }
   try {
     pack.spots = await pullSpots();
   } catch (e) {
     pack.spotsError = String(e.message || e);
+    if (prev.spots) pack.spots = prev.spots;
   }
   await chrome.storage.local.set({ radar: pack });
+  await updateBadge(pack.spots);
   return pack;
+}
+
+async function updateBadge(spots) {
+  const n = spots?.NIFTY;
+  if (n?.pct == null || !Number.isFinite(Number(n.pct))) {
+    await chrome.action.setBadgeText({ text: "" });
+    return;
+  }
+  const text = `${n.pct >= 0 ? "+" : ""}${Number(n.pct).toFixed(1)}`.slice(0, 4);
+  await chrome.action.setBadgeText({ text });
+  await chrome.action.setBadgeBackgroundColor({
+    color: n.pct >= 0 ? "#047857" : "#be123c",
+  });
+}
+
+const SPOTS_STALE_MS = 5 * 60 * 1000;
+const FII_STALE_MS = 3 * 60 * 60 * 1000;
+
+async function ensureFresh() {
+  const radar = (await storageGet(["radar"])).radar;
+  if (!radar) return refreshAll();
+  const age = Date.now() - (radar.at || 0);
+  const fiiAge = Date.now() - (radar.fii?.at || 0);
+  const fiiBad = !radar.fii || fiiAge > FII_STALE_MS;
+  if (age > SPOTS_STALE_MS || fiiBad) return refreshAll();
+  if (isCashSessionIST()) {
+    try {
+      radar.spots = await pullSpots();
+      radar.at = Date.now();
+      await chrome.storage.local.set({ radar });
+      await updateBadge(radar.spots);
+    } catch {
+      /* keep last spots */
+    }
+  }
+  return radar;
 }
 
 function armAlarms() {
@@ -245,6 +289,7 @@ chrome.alarms.onAlarm.addListener((a) => {
           const radar = s.radar || {};
           radar.spots = spots;
           await chrome.storage.local.set({ radar });
+          await updateBadge(spots);
         })
         .catch(() => {});
     }
@@ -253,6 +298,10 @@ chrome.alarms.onAlarm.addListener((a) => {
 chrome.runtime.onMessage.addListener((msg, _s, send) => {
   if (msg?.type === "refresh") {
     refreshAll().then(send).catch((e) => send({ error: String(e) }));
+    return true;
+  }
+  if (msg?.type === "ensure") {
+    ensureFresh().then(send).catch((e) => send({ error: String(e) }));
     return true;
   }
   return false;

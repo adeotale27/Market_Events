@@ -56,7 +56,7 @@ Selecting NIFTY / SENSEX / BANKNIFTY in the popup is the same as changing `activ
 
 ## FII / DII
 
-Do **not** upload. Service worker warms NSE cookies (`nseindia.com` home + FII-DII page) then `GET /api/fiidiiTradeReact`. Needs a normal Chrome profile that can open NSE (same constraint as Pulse’s Python pull).
+Do **not** upload. Service worker warms NSE cookies (`nseindia.com` home + FII-DII page) then `GET /api/fiidiiTradeReact`. Needs a normal Chrome profile that can open NSE. If the pull fails, the popup keeps the last good nets and retries on the next stale window (~3h) or Refresh.
 
 ## Remote base
 

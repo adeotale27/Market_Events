@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1
+
+- Toolbar icon + NIFTY % badge
+- FII/DII shown as three nets (FII, DII, combined) with buy/sell colour; last good print kept if NSE fails
+- Popup auto-refreshes stale data on open; impact rows coloured ≤7d / 8–14d
+- Footer shows JSON source (admin-upload / github / bundled)
+
 ## 1.0.0
 
 - Four Pulse-style tiles: Holiday (JSON), FII/DII (NSE), Next Event (econ JSON), Index Impact (per-index JSON)
